@@ -1,0 +1,102 @@
+name: Forward Email
+slug: forward-email
+type: client
+interface: tui
+featured: true
+aliases: [forwardemail, forward email terminal, forward email cli, forward email tui]
+summary: >-
+  Forward Email's webmail in the terminal: mail, calendar, contacts and settings, with mouse support and a key hint bar.
+description: >-
+  The forwardemail command runs the same application as Forward Email's webmail inside a terminal, drawn as text.
+  Mail, calendar, contacts, tasks and settings all work, with keyboard shortcuts, mouse clicks and scrolling, and
+  plain-text reading and writing by default. It installs as one standalone executable on Linux, macOS and Windows,
+  or from npm anywhere Node.js 22 runs. It signs in to Forward Email accounts, including self-hosted servers.
+website: https://forwardemail.net/
+repo: https://github.com/forwardemail/mail.forwardemail.net
+docs: https://github.com/forwardemail/mail.forwardemail.net/blob/main/cli/README.md
+license: BUSL-1.1
+language: TypeScript
+maintained: true
+latest_version: "0.14.16"
+lineage: "The webmail at mail.forwardemail.net, built for the terminal"
+backend: "Forward Email API over HTTPS, with new mail over WebSocket"
+account: "A Forward Email account with a mailbox (paid plans start at $3 a month). `forwardemail --demo` opens a demo account with no sign-in."
+platforms:
+  linux:
+    support: native
+    note: "Standalone builds for x64 and arm64 need glibc. On musl systems such as Alpine Linux, install with npm."
+    install:
+      - { via: install script, cmd: "curl -fsSL https://github.com/forwardemail/mail.forwardemail.net/releases/latest/download/install.sh | sh" }
+      - { via: npm, cmd: "npm install -g forwardemail" }
+  macos:
+    support: native
+    note: "Standalone builds for Apple Silicon and Intel."
+    install:
+      - { via: install script, cmd: "curl -fsSL https://github.com/forwardemail/mail.forwardemail.net/releases/latest/download/install.sh | sh" }
+      - { via: npm, cmd: "npm install -g forwardemail" }
+  windows:
+    support: native
+    note: "Signed standalone builds for x64 and arm64. Windows Terminal is recommended over the legacy console."
+    install:
+      - { via: PowerShell, cmd: "irm https://github.com/forwardemail/mail.forwardemail.net/releases/latest/download/install.ps1 | iex" }
+      - { via: npm, cmd: "npm install -g forwardemail" }
+  bsd:
+    support: native
+    note: "Through npm, which runs anywhere Node.js 22 or later does."
+    install:
+      - { via: npm, cmd: "npm install -g forwardemail" }
+  android:
+    support: termux
+    note: "Through npm in Termux, which packages Node.js 24 and later. Not tested by the project."
+    install:
+      - { via: Termux, cmd: "pkg install nodejs && npm install -g forwardemail" }
+protocols: { imap: false, pop3: false, smtp: false, jmap: false, maildir: false, mbox: false, notmuch: false }
+features:
+  pgp: true
+  smime: false
+  oauth2: false
+  threads: true
+  search: "built-in, across messages, contacts and events"
+  html: "shown as formatted text with links; plain text by default"
+  mouse: true
+  multiple_accounts: true
+  offline: "drafts and changes made offline are sent when the connection returns"
+  calendar: true
+  contacts: true
+  vim_keys: false
+  config: "settings screens, keyboard shortcut editor and an optional user.css"
+pros:
+  - "Calendar, contacts and tasks in the same terminal app as mail"
+  - "Mouse clicks, scrolling and text selection work, and the bottom row always shows the keys for the current screen"
+  - "One self-updating executable with no setup files to write"
+cons:
+  - "Only works with Forward Email accounts"
+  - "Images and video are not drawn; HTML mail is shown as text with links"
+  - "Passkey sign-in needs a browser or the desktop app"
+forward_email: |
+  # macOS and Linux
+  curl -fsSL https://github.com/forwardemail/mail.forwardemail.net/releases/latest/download/install.sh | sh
+
+  # Windows (PowerShell)
+  irm https://github.com/forwardemail/mail.forwardemail.net/releases/latest/download/install.ps1 | iex
+
+  # Any system with Node.js 22 or later
+  npm install -g forwardemail
+
+  forwardemail            # sign in and read your mail
+  forwardemail --demo     # try it with sample data, no account needed
+forward_email_file: ""
+screenshots:
+  - { name: inbox, alt: "Forward Email in a terminal: folders on the left, the inbox message list on the right and key hints on the bottom row" }
+  - { name: message, alt: "An open message in the Forward Email terminal app, with reply, archive and delete keys shown on the bottom row" }
+  - { name: compose, alt: "Writing a new message in the terminal, with the recipient, subject and a plain-text body" }
+  - { name: calendar, alt: "The month view of the calendar in the Forward Email terminal app" }
+  - { name: contacts, alt: "The contacts list in the Forward Email terminal app" }
+  - { name: settings, alt: "Appearance settings in the terminal app, with theme, layout and density options" }
+  - { name: shortcuts, alt: "The keyboard shortcuts list, opened with the question mark key" }
+sources:
+  - "https://github.com/forwardemail/mail.forwardemail.net/blob/main/cli/README.md"
+  - "https://github.com/forwardemail/mail.forwardemail.net/blob/main/LICENSE.md"
+  - "https://www.npmjs.com/package/forwardemail"
+  - "https://forwardemail.net/en/pricing"
+  - "https://github.com/termux/termux-packages/tree/master/packages/nodejs"

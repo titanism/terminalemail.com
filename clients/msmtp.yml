@@ -1,0 +1,105 @@
+name: msmtp
+slug: msmtp
+type: tool
+interface: cli
+summary: >-
+  SMTP client with a sendmail-compatible interface that terminal mail clients use to send mail.
+description: >-
+  msmtp takes a message on standard input and hands it to an SMTP server. Its command line options and exit codes
+  match sendmail, so clients such as NeoMutt, sup, mu4e and git send-email can call it in place of
+  /usr/sbin/sendmail. It supports several accounts, TLS, many authentication methods and reading the password from a
+  command. The bundled msmtpq script queues mail while offline.
+website: https://marlam.de/msmtp/
+repo: https://git.marlam.de/gitweb/?p=msmtp.git
+docs: https://marlam.de/msmtp/msmtp.html
+license: GPL-3.0-or-later
+language: C
+maintained: true
+latest_version: "1.8.34"
+platforms:
+  linux:
+    support: native
+    install:
+      - { via: apt, cmd: "sudo apt install msmtp" }
+      - { via: dnf, cmd: "sudo dnf install msmtp" }
+      - { via: pacman, cmd: "sudo pacman -S msmtp" }
+      - { via: apk, cmd: "sudo apk add msmtp" }
+  macos:
+    support: native
+    install:
+      - { via: Homebrew, cmd: "brew install msmtp" }
+  windows:
+    support: native
+    note: "Native builds through MSYS2 and Cygwin."
+    install:
+      - { via: MSYS2, cmd: "pacman -S mingw-w64-ucrt-x86_64-msmtp" }
+      - { via: Cygwin, cmd: "setup-x86_64.exe -q -P msmtp" }
+  bsd:
+    support: native
+    install:
+      - { via: FreeBSD pkg, cmd: "pkg install msmtp" }
+      - { via: OpenBSD, cmd: "pkg_add msmtp" }
+  android:
+    support: termux
+    install:
+      - { via: Termux, cmd: "pkg install msmtp" }
+protocols: { imap: false, pop3: false, smtp: true, jmap: false, maildir: false, mbox: false, notmuch: false }
+features:
+  pgp: false
+  smime: false
+  oauth2: "via passwordeval with a token command (oauthbearer, xoauth2)"
+  threads: false
+  search: false
+  html: false
+  mouse: false
+  multiple_accounts: true
+  offline: "queues mail with the bundled msmtpq script"
+  calendar: false
+  contacts: false
+  vim_keys: false
+  config: "~/.msmtprc or ~/.config/msmtp/config text file"
+pros:
+  - "Drop-in sendmail replacement that most terminal clients can call"
+  - "passwordeval reads the password from pass, gpg or a keyring"
+  - "Small, with packages on every major platform including Windows and Termux"
+cons:
+  - "Send only; needs a separate tool or client to read mail"
+  - "Offline queueing needs the separate msmtpq script"
+  - "OAuth2 tokens must be fetched and refreshed by an external program"
+forward_email: |
+  defaults
+  auth           on
+  tls            on
+  # Debian/Ubuntu path; omit this line to use the system default trust store
+  tls_trust_file /etc/ssl/certs/ca-certificates.crt
+  logfile        ~/.msmtp.log
+
+  account        forwardemail
+  host           smtp.forwardemail.net
+  port           465
+  tls_starttls   off
+  from           you@example.com
+  user           you@example.com
+  passwordeval   pass show forwardemail/you@example.com
+
+  account default : forwardemail
+
+  # Test: printf 'Subject: test\n\nhello\n' | msmtp you@example.com
+forward_email_file: "~/.msmtprc"
+sources:
+  - "https://marlam.de/msmtp/"
+  - "https://marlam.de/msmtp/download/"
+  - "https://marlam.de/msmtp/msmtp.html"
+  - "https://github.com/marlam/msmtp"
+  - "https://github.com/marlam/msmtp/blob/master/doc/msmtp.texi"
+  - "https://github.com/marlam/msmtp/tree/master/scripts/msmtpq"
+  - "https://packages.debian.org/search?keywords=msmtp&searchon=names&exact=1"
+  - "https://mdapi.fedoraproject.org/rawhide/pkg/msmtp"
+  - "https://archlinux.org/packages/extra/x86_64/msmtp/"
+  - "https://pkgs.alpinelinux.org/packages?name=msmtp"
+  - "https://formulae.brew.sh/formula/msmtp"
+  - "https://packages.msys2.org/base/mingw-w64-msmtp"
+  - "https://cygwin.com/packages/summary/msmtp.html"
+  - "https://www.freshports.org/mail/msmtp/"
+  - "https://openports.pl/path/mail/msmtp"
+  - "https://github.com/termux/termux-packages/tree/master/packages/msmtp"

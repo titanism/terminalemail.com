@@ -1,0 +1,133 @@
+name: mu4e
+slug: mu4e
+type: client
+interface: emacs
+summary: >-
+  Email client that runs inside GNU Emacs, built on the mu Maildir indexer and search tool.
+description: >-
+  mu4e reads mail from a local Maildir that mu indexes with Xapian, and its views are search queries rather than folders.
+  Mail is fetched by a separate program such as mbsync (isync), and sent through Emacs smtpmail or an external sendmail-compatible program.
+  It reuses the Gnus message and article modes, so signing, encryption and HTML rendering come from Emacs.
+  It suits Emacs users who keep mail offline and want fast full-text search.
+website: https://www.djcbsoftware.nl/code/mu/mu4e.html
+repo: https://github.com/djcb/mu
+docs: https://www.djcbsoftware.nl/code/mu/mu4e/
+license: GPL-3.0-or-later
+language: Emacs Lisp (mu4e), C++ (mu)
+maintained: true
+latest_version: "1.14.3"
+lineage: "Emacs front end of the mu project"
+platforms:
+  linux:
+    support: native
+    install:
+      - { via: apt, cmd: "sudo apt install mu4e isync" }
+      - { via: dnf, cmd: "sudo dnf install maildir-utils isync emacs" }
+      - { via: AUR, cmd: "yay -S mu isync" }
+  macos:
+    support: native
+    install:
+      - { via: Homebrew, cmd: "brew install mu isync emacs" }
+  windows:
+    support: wsl
+    note: "mu has no Windows package and upstream calls native Windows support experimental; run Emacs, mu and mbsync in WSL."
+    install:
+      - { via: WSL, cmd: "sudo apt install mu4e isync" }
+  bsd:
+    support: native
+    install:
+      - { via: FreeBSD pkg, cmd: "pkg install mu isync" }
+      - { via: OpenBSD, cmd: "pkg_add mu isync" }
+  android:
+    support: termux
+    install:
+      - { via: Termux, cmd: "pkg install mu isync" }
+protocols: { imap: external, pop3: external, smtp: true, jmap: false, maildir: true, mbox: false, notmuch: false }
+features:
+  pgp: true
+  smime: "via Emacs MML"
+  oauth2: "via script"
+  threads: true
+  search: "Xapian full-text index with mu query syntax"
+  html: "built-in, rendered with the Emacs shr library"
+  mouse: true
+  multiple_accounts: "via contexts"
+  offline: "full; reads a local Maildir synced by mbsync or OfflineIMAP"
+  calendar: "replies to invitations with mu4e-icalendar"
+  contacts: "address completion from indexed mail"
+  vim_keys: false
+  config: "Emacs Lisp in init.el"
+pros:
+  - "Full-text search over all local mail through mu's Xapian index."
+  - "Works offline, since all mail lives in a local Maildir."
+  - "Uses Emacs message mode, so PGP/MIME, S/MIME and Org mode links are available."
+cons:
+  - "No built-in IMAP; needs mbsync or a similar sync tool, so setup spans several config files."
+  - "Requires Emacs and some Emacs Lisp to configure."
+  - "No native Windows build, and Arch packages it only in the AUR."
+forward_email: |
+  # 1) ~/.mbsyncrc: sync the mailbox to ~/Mail/forwardemail (isync 1.5+ syntax)
+  IMAPAccount forwardemail
+  Host imap.forwardemail.net
+  Port 993
+  User you@example.com
+  PassCmd "pass show email/forwardemail"
+  TLSType IMAPS
+
+  IMAPStore forwardemail-remote
+  Account forwardemail
+
+  MaildirStore forwardemail-local
+  SubFolders Verbatim
+  Path ~/Mail/forwardemail/
+  Inbox ~/Mail/forwardemail/INBOX
+
+  Channel forwardemail
+  Far :forwardemail-remote:
+  Near :forwardemail-local:
+  Patterns * !Drafts
+  Create Both
+  Expunge Both
+  SyncState *
+
+  # 2) First sync and index:
+  #    mbsync forwardemail
+  #    mu init --maildir=~/Mail --personal-address=you@example.com && mu index
+
+  # 3) ~/.emacs.d/init.el
+  (require 'mu4e)
+  (setq user-mail-address "you@example.com"
+        user-full-name "Your Name"
+        mu4e-get-mail-command "mbsync forwardemail"
+        mu4e-change-filenames-when-moving t
+        mu4e-sent-folder "/forwardemail/Sent Mail"
+        mu4e-drafts-folder "/forwardemail/Drafts"
+        mu4e-trash-folder "/forwardemail/Trash"
+        message-send-mail-function 'smtpmail-send-it
+        smtpmail-smtp-server "smtp.forwardemail.net"
+        smtpmail-smtp-service 465
+        smtpmail-stream-type 'ssl
+        smtpmail-smtp-user "you@example.com")
+
+  # 4) SMTP password in ~/.authinfo.gpg (read by Emacs auth-source):
+  # machine smtp.forwardemail.net login you@example.com port 465 password YOUR-GENERATED-PASSWORD
+forward_email_file: "~/.mbsyncrc and ~/.emacs.d/init.el"
+sources:
+  - "https://www.djcbsoftware.nl/code/mu/mu4e.html"
+  - "https://www.djcbsoftware.nl/code/mu/mu4e/"
+  - "https://github.com/djcb/mu"
+  - "https://github.com/djcb/mu/blob/master/README.org"
+  - "https://github.com/djcb/mu/blob/master/COPYING"
+  - "https://github.com/djcb/mu/blob/master/mu4e/mu4e.texi"
+  - "https://github.com/djcb/mu/blob/master/man/mu-init.1.org"
+  - "https://formulae.brew.sh/formula/mu"
+  - "https://packages.debian.org/trixie/mu4e"
+  - "https://src.fedoraproject.org/rpms/maildir-utils/blob/rawhide/f/maildir-utils.spec"
+  - "https://aur.archlinux.org/packages/mu"
+  - "https://github.com/freebsd/freebsd-ports/blob/main/mail/mu/Makefile"
+  - "https://github.com/openbsd/ports/blob/master/mail/mu/Makefile"
+  - "https://github.com/termux/termux-packages/blob/master/packages/mu/build.sh"
+  - "https://packages.msys2.org/api/search?query=mu"
+  - "https://sourceforge.net/p/isync/isync/ci/master/tree/src/mbsync.1.in"
+  - "https://github.com/emacs-mirror/emacs/blob/emacs-31/lisp/mail/smtpmail.el"
+  - "https://github.com/forwardemail/forwardemail.net/blob/master/helpers/ensure-default-mailboxes.js"

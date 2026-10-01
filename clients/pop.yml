@@ -1,0 +1,94 @@
+name: Pop
+slug: pop
+type: tool
+interface: tui
+summary: >-
+  Send-only email tool from Charm with a terminal form for composing and a command-line mode for scripts.
+description: >-
+  Pop composes and sends email from the terminal, either through a full-screen form or from flags and standard input.
+  It sends through the Resend API or any SMTP server, renders the Markdown body to HTML unless plain text is requested, and can attach files.
+  It cannot read or fetch mail, so it is used next to a mail client or in scripts and pipelines.
+  It is configured entirely with environment variables or flags.
+website: https://github.com/charmbracelet/pop
+repo: https://github.com/charmbracelet/pop
+docs: https://github.com/charmbracelet/pop/blob/main/README.md
+license: MIT
+language: Go
+maintained: true
+latest_version: "0.5.0"
+platforms:
+  linux:
+    support: native
+    install:
+      - { via: Homebrew, cmd: "brew install pop" }
+      - { via: AUR, cmd: "yay -S charm-pop-bin" }
+      - { via: Nix, cmd: "nix-env -iA nixpkgs.pop" }
+      - { via: go, cmd: "go install github.com/charmbracelet/pop@latest" }
+  macos:
+    support: native
+    install:
+      - { via: Homebrew, cmd: "brew install pop" }
+      - { via: go, cmd: "go install github.com/charmbracelet/pop@latest" }
+  windows:
+    support: native
+    install:
+      - { via: winget, cmd: "winget install charmbracelet.pop" }
+      - { via: go, cmd: "go install github.com/charmbracelet/pop@latest" }
+  bsd:
+    support: native
+    note: "No ports package; release binaries are published for FreeBSD, OpenBSD and NetBSD."
+    install:
+      - { via: go, cmd: "go install github.com/charmbracelet/pop@latest" }
+  android:
+    support: none
+    note: "No Termux package."
+    install: []
+protocols: { imap: false, pop3: false, smtp: true, jmap: false, maildir: false, mbox: false, notmuch: false }
+features:
+  pgp: false
+  smime: false
+  oauth2: false
+  threads: false
+  search: false
+  html: "sends the Markdown body rendered as HTML"
+  mouse: false
+  multiple_accounts: false
+  offline: false
+  calendar: false
+  contacts: false
+  vim_keys: false
+  config: "environment variables or command-line flags"
+pros:
+  - "Works both as an interactive form and as a scriptable command reading the body from standard input."
+  - "Sends through any SMTP server with SSL/TLS or STARTTLS, or through the Resend API."
+  - "Single Go binary with packages for Homebrew, winget, Nix and the AUR."
+cons:
+  - "Send-only: cannot read, fetch or search mail."
+  - "One sending account at a time, set through environment variables."
+  - "No OpenPGP or S/MIME signing."
+forward_email: |
+  # ~/.bashrc or ~/.zshrc
+  export POP_SMTP_HOST=smtp.forwardemail.net
+  export POP_SMTP_PORT=465
+  export POP_SMTP_ENCRYPTION=ssl        # or port 587 with: starttls
+  export POP_SMTP_USERNAME=you@example.com
+  export POP_SMTP_PASSWORD="$(pass show email/forwardemail)"
+  export POP_FROM=you@example.com
+
+  # Interactive: pop
+  # Scripted:    pop < message.md --to friend@example.org --subject "Hello"
+forward_email_file: "~/.bashrc (or your shell profile)"
+sources:
+  - "https://github.com/charmbracelet/pop"
+  - "https://github.com/charmbracelet/pop/blob/main/README.md"
+  - "https://github.com/charmbracelet/pop/blob/main/LICENSE"
+  - "https://github.com/charmbracelet/pop/blob/main/main.go"
+  - "https://github.com/charmbracelet/pop/blob/main/email.go"
+  - "https://github.com/charmbracelet/pop/blob/main/keymap.go"
+  - "https://github.com/charmbracelet/pop/releases/tag/v0.5.0"
+  - "https://github.com/charmbracelet/pop/releases/download/v0.5.0/checksums.txt"
+  - "https://formulae.brew.sh/formula/pop"
+  - "https://aur.archlinux.org/packages/charm-pop-bin"
+  - "https://github.com/NixOS/nixpkgs/blob/master/pkgs/by-name/po/pop/package.nix"
+  - "https://github.com/microsoft/winget-pkgs/tree/master/manifests/c/charmbracelet/pop"
+  - "https://github.com/termux/termux-packages/tree/master/packages"

@@ -1,0 +1,3 @@
+# No self-hosted runners.
+self-hosted-runner:
+  labels: []

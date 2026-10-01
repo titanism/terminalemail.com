@@ -1,0 +1,7 @@
+# Languages the site is built in. English is the source; add a language here and its
+# translations under i18n/<code>/ (see scripts/i18n.js).
+- code: en
+  name: English
+  hreflang: en
+  og: en_US
+  dir: ltr

@@ -1,0 +1,119 @@
+name: notmuch
+slug: notmuch
+type: tool
+interface: cli
+summary: >-
+  Command-line mail indexer that adds fast full-text search, threading and tags to a local Maildir.
+description: >-
+  notmuch indexes messages in a local Maildir with Xapian and lets you search, thread and tag them from the command line.
+  It does not fetch or send mail; a sync tool such as mbsync and an SMTP client such as msmtp handle that.
+  Several mail clients use it as their back end, including its own Emacs interface, alot, aerc and NeoMutt.
+  It suits users who want tags and search instead of folders.
+website: https://notmuchmail.org/
+repo: https://git.notmuchmail.org/git/notmuch
+docs: https://notmuchmail.org/doc/latest/
+license: GPL-3.0-or-later
+language: C, C++
+maintained: true
+latest_version: "0.40"
+platforms:
+  linux:
+    support: native
+    install:
+      - { via: apt, cmd: "sudo apt install notmuch" }
+      - { via: dnf, cmd: "sudo dnf install notmuch" }
+      - { via: pacman, cmd: "sudo pacman -S notmuch" }
+  macos:
+    support: native
+    install:
+      - { via: Homebrew, cmd: "brew install notmuch" }
+  windows:
+    support: wsl
+    note: "No native Windows build or MSYS2 package; run it in WSL."
+    install:
+      - { via: WSL, cmd: "sudo apt install notmuch" }
+  bsd:
+    support: native
+    install:
+      - { via: FreeBSD pkg, cmd: "pkg install notmuch" }
+      - { via: OpenBSD, cmd: "pkg_add notmuch" }
+  android:
+    support: termux
+    install:
+      - { via: Termux, cmd: "pkg install notmuch" }
+protocols: { imap: false, pop3: false, smtp: false, jmap: false, maildir: true, mbox: false, notmuch: true }
+features:
+  pgp: true
+  smime: true
+  oauth2: false
+  threads: true
+  search: "Xapian full-text search with tags and date ranges"
+  html: false
+  mouse: false
+  multiple_accounts: "indexes every Maildir under one database path"
+  offline: "full; works only on local mail"
+  calendar: false
+  contacts: "notmuch address lists addresses from indexed mail"
+  vim_keys: false
+  config: "INI-style notmuch config file"
+pros:
+  - "Fast full-text search and tagging over large local mail stores."
+  - "Used as a back end by several clients, so one index serves more than one front end."
+  - "Can index and search decrypted PGP/MIME and S/MIME messages."
+cons:
+  - "Does not fetch or send mail; needs mbsync and msmtp or similar tools."
+  - "Custom tags stay in the local index; only standard flags such as unread and replied sync to Maildir, and from there to IMAP."
+  - "No native Windows build."
+forward_email: |
+  # notmuch only indexes local mail. Sync Forward Email to ~/Mail first with mbsync (~/.mbsyncrc):
+  IMAPAccount forwardemail
+  Host imap.forwardemail.net
+  Port 993
+  User you@example.com
+  PassCmd "pass show email/forwardemail"
+  TLSType IMAPS
+
+  IMAPStore forwardemail-remote
+  Account forwardemail
+
+  MaildirStore forwardemail-local
+  SubFolders Verbatim
+  Path ~/Mail/forwardemail/
+  Inbox ~/Mail/forwardemail/INBOX
+
+  Channel forwardemail
+  Far :forwardemail-remote:
+  Near :forwardemail-local:
+  Patterns *
+  Create Both
+  SyncState *
+
+  # ~/.notmuch-config
+  [database]
+  path=/home/you/Mail
+  [user]
+  name=Your Name
+  primary_email=you@example.com
+  [new]
+  tags=unread;inbox;
+
+  # Then: mbsync forwardemail && notmuch new
+  # Search: notmuch search tag:unread from:someone@example.org
+forward_email_file: "~/.mbsyncrc and ~/.notmuch-config"
+sources:
+  - "https://notmuchmail.org/"
+  - "https://notmuchmail.org/doc/latest/"
+  - "https://notmuchmail.org/releases/"
+  - "https://git.notmuchmail.org/git/notmuch"
+  - "https://git.notmuchmail.org/git/notmuch/blob/HEAD:/COPYING"
+  - "https://git.notmuchmail.org/git/notmuch/blob/HEAD:/NEWS"
+  - "https://git.notmuchmail.org/git/notmuch/blob/HEAD:/doc/man1/notmuch-config.rst"
+  - "https://packages.debian.org/trixie/notmuch"
+  - "https://mdapi.fedoraproject.org/rawhide/pkg/notmuch"
+  - "https://archlinux.org/packages/extra/x86_64/notmuch/"
+  - "https://formulae.brew.sh/formula/notmuch"
+  - "https://www.freshports.org/mail/notmuch/"
+  - "https://github.com/openbsd/ports/blob/master/mail/notmuch/Makefile"
+  - "https://github.com/termux/termux-packages/blob/master/packages/notmuch/build.sh"
+  - "https://packages.msys2.org/api/search?query=notmuch"
+  - "https://sourceforge.net/p/isync/isync/ci/master/tree/src/mbsync.1.in"

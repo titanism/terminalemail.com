@@ -1,0 +1,138 @@
+name: Notmuch Emacs interface
+slug: notmuch-emacs
+type: client
+interface: emacs
+summary: >-
+  Emacs front end for notmuch that reads, searches, tags and composes mail from a local Maildir.
+description: >-
+  The Notmuch Emacs interface (notmuch.el) ships with notmuch and runs inside GNU Emacs.
+  It replaces folders with saved searches and tags stored in the notmuch Xapian index, and shows whole threads in one buffer.
+  Mail must be synced to a local Maildir by a tool such as mbsync, and outgoing mail goes through Emacs message mode with smtpmail or a sendmail-compatible program such as msmtp.
+  It suits Emacs users who organize mail with tags and search instead of folders.
+website: https://notmuchmail.org/notmuch-emacs/
+repo: https://git.notmuchmail.org/git/notmuch
+docs: https://notmuchmail.org/doc/latest/notmuch-emacs.html
+license: GPL-3.0-or-later
+language: Emacs Lisp
+maintained: true
+latest_version: "0.40"
+lineage: "Part of the notmuch project"
+platforms:
+  linux:
+    support: native
+    install:
+      - { via: apt, cmd: "sudo apt install elpa-notmuch isync msmtp" }
+      - { via: dnf, cmd: "sudo dnf install emacs-notmuch isync msmtp" }
+      - { via: pacman, cmd: "sudo pacman -S notmuch emacs isync msmtp" }
+  macos:
+    support: native
+    install:
+      - { via: Homebrew, cmd: "brew install notmuch emacs isync msmtp" }
+  windows:
+    support: wsl
+    note: "notmuch has no native Windows build or MSYS2 package; run Emacs and notmuch in WSL."
+    install:
+      - { via: WSL, cmd: "sudo apt install elpa-notmuch isync msmtp" }
+  bsd:
+    support: native
+    install:
+      - { via: FreeBSD pkg, cmd: "pkg install notmuch-emacs isync msmtp" }
+      - { via: OpenBSD, cmd: "pkg_add notmuch-emacs isync msmtp" }
+  android:
+    support: termux
+    install:
+      - { via: Termux, cmd: "pkg install notmuch emacs isync msmtp" }
+protocols: { imap: external, pop3: external, smtp: true, jmap: false, maildir: true, mbox: false, notmuch: true }
+features:
+  pgp: true
+  smime: true
+  oauth2: "via script"
+  threads: true
+  search: "notmuch Xapian full-text search with tags"
+  html: "built-in, rendered with the Emacs shr library"
+  mouse: true
+  multiple_accounts: true
+  offline: "full; reads a local Maildir synced by mbsync or OfflineIMAP"
+  calendar: "shows text/calendar parts; no invitation replies"
+  contacts: "address completion from the notmuch index"
+  vim_keys: false
+  config: "Emacs Lisp in init.el plus the notmuch config file"
+pros:
+  - "Tag-based organization with fast full-text search over all local mail."
+  - "Shows a whole thread in a single buffer."
+  - "Handles PGP/MIME and S/MIME signatures and decryption through notmuch."
+cons:
+  - "No built-in IMAP; needs mbsync or a similar sync tool."
+  - "Custom tags stay in the local index; only standard flags such as unread and replied reach the IMAP server."
+  - "Requires Emacs and some Emacs Lisp to configure."
+forward_email: |
+  # 1) ~/.mbsyncrc: sync the mailbox to ~/Mail/forwardemail (isync 1.5+ syntax)
+  IMAPAccount forwardemail
+  Host imap.forwardemail.net
+  Port 993
+  User you@example.com
+  PassCmd "pass show email/forwardemail"
+  TLSType IMAPS
+
+  IMAPStore forwardemail-remote
+  Account forwardemail
+
+  MaildirStore forwardemail-local
+  SubFolders Verbatim
+  Path ~/Mail/forwardemail/
+  Inbox ~/Mail/forwardemail/INBOX
+
+  Channel forwardemail
+  Far :forwardemail-remote:
+  Near :forwardemail-local:
+  Patterns *
+  Create Both
+  SyncState *
+
+  # 2) Index: run "notmuch setup" (database path ~/Mail, address you@example.com),
+  #    then: mbsync forwardemail && notmuch new
+
+  # 3) ~/.config/msmtp/config (chmod 600)
+  account forwardemail
+  host smtp.forwardemail.net
+  port 465
+  tls on
+  tls_starttls off
+  auth on
+  user you@example.com
+  passwordeval "pass show email/forwardemail"
+  from you@example.com
+  account default : forwardemail
+
+  # 4) ~/.emacs.d/init.el
+  (require 'notmuch)
+  (setq user-mail-address "you@example.com"
+        user-full-name "Your Name"
+        message-send-mail-function 'message-send-mail-with-sendmail
+        sendmail-program "msmtp"
+        message-sendmail-envelope-from 'header
+        mail-specify-envelope-from t
+        notmuch-fcc-dirs "\"forwardemail/Sent Mail\" +sent -inbox -unread")
+forward_email_file: "~/.mbsyncrc, ~/.config/msmtp/config and ~/.emacs.d/init.el"
+sources:
+  - "https://notmuchmail.org/"
+  - "https://notmuchmail.org/notmuch-emacs/"
+  - "https://notmuchmail.org/doc/latest/notmuch-emacs.html"
+  - "https://git.notmuchmail.org/git/notmuch"
+  - "https://git.notmuchmail.org/git/notmuch/blob/HEAD:/COPYING"
+  - "https://git.notmuchmail.org/git/notmuch/blob/HEAD:/NEWS"
+  - "https://git.notmuchmail.org/git/notmuch/blob/HEAD:/emacs/notmuch-maildir-fcc.el"
+  - "https://git.notmuchmail.org/git/notmuch/blob/HEAD:/emacs/notmuch-show.el"
+  - "https://notmuchmail.org/releases/"
+  - "https://packages.debian.org/trixie/elpa-notmuch"
+  - "https://mdapi.fedoraproject.org/rawhide/pkg/emacs-notmuch"
+  - "https://archlinux.org/packages/extra/x86_64/notmuch/"
+  - "https://formulae.brew.sh/formula/notmuch"
+  - "https://github.com/Homebrew/homebrew-core/blob/main/Formula/n/notmuch.rb"
+  - "https://www.freshports.org/mail/notmuch-emacs/"
+  - "https://github.com/openbsd/ports/blob/master/mail/notmuch/Makefile"
+  - "https://github.com/termux/termux-packages/blob/master/packages/notmuch/build.sh"
+  - "https://packages.msys2.org/api/search?query=notmuch"
+  - "https://sourceforge.net/p/isync/isync/ci/master/tree/src/mbsync.1.in"
+  - "https://git.marlam.de/gitweb/?p=msmtp.git;a=blob;f=doc/msmtp.texi"
+  - "https://github.com/forwardemail/forwardemail.net/blob/master/helpers/ensure-default-mailboxes.js"

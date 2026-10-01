@@ -1,0 +1,90 @@
+name: Sup
+slug: sup
+type: client
+interface: tui
+summary: >-
+  Curses email client in Ruby built around threads, labels and fast full-text search over local mail.
+description: >-
+  Sup indexes Maildir and mbox sources with Xapian and shows mail as threads that can be labeled, archived and muted,
+  in the style of Gmail. It suits people with large mail archives who search more than they file. It reads local
+  mail only, so it is paired with a sync tool such as isync for IMAP and a sendmail-compatible program such as msmtp
+  for sending. The maintainers focus on keeping the current feature set working rather than adding major features.
+website: https://supmua.dev/
+repo: https://github.com/sup-heliotrope/sup
+docs: https://github.com/sup-heliotrope/sup/wiki
+license: GPL-2.0-or-later
+language: Ruby
+maintained: true
+latest_version: "1.4"
+platforms:
+  linux:
+    support: native
+    install:
+      - { via: apt, cmd: "sudo apt install sup-mail" }
+      - { via: RubyGems, cmd: "gem install sup" }
+  macos:
+    support: native
+    install:
+      - { via: RubyGems, cmd: "gem install sup" }
+  windows:
+    support: wsl
+    note: "Unix-only; use WSL."
+    install:
+      - { via: WSL, cmd: "sudo apt install sup-mail" }
+  bsd:
+    support: source
+    note: "No ports package; install the Ruby gem."
+    install:
+      - { via: RubyGems, cmd: "gem install sup" }
+  android:
+    support: none
+    install: []
+protocols: { imap: false, pop3: false, smtp: "external", jmap: false, maildir: true, mbox: true, notmuch: false }
+features:
+  pgp: true
+  smime: false
+  oauth2: false
+  threads: true
+  search: "Xapian full-text index with a query language"
+  html: "via the mime-decode hook and an external viewer such as w3m"
+  mouse: false
+  multiple_accounts: true
+  offline: "reads local Maildir or mbox; sync with isync or OfflineIMAP"
+  calendar: false
+  contacts: "tracks recent contacts automatically"
+  vim_keys: true
+  config: "~/.sup/config.yaml and ~/.sup/sources.yaml, plus Ruby hooks"
+pros:
+  - "Fast full-text search over large archives"
+  - "Gmail-style labels, archiving and muting of threads"
+  - "Ruby hooks for custom behavior"
+cons:
+  - "No built-in IMAP or SMTP; needs isync (or similar) and msmtp"
+  - "Changes sync back to Maildir only with the optional sync-back setting"
+  - "Packaged by Debian and Ubuntu (and the AUR); elsewhere installed as a Ruby gem with native Xapian bindings"
+forward_email: |
+  # Sup reads local mail. Sync it from imap.forwardemail.net with isync (see the isync entry) into ~/Mail/forwardemail,
+  # send with msmtp (see the msmtp entry), then add the source once:
+  #   sup-add maildir:$HOME/Mail/forwardemail/INBOX
+  ---
+  :accounts:
+    :default:
+      :name: Your Name
+      :email: you@example.com
+      :alternates: []
+      :sendmail: msmtp -a forwardemail --read-envelope-from -t
+      :gpgkey: ""
+forward_email_file: "~/.sup/config.yaml"
+sources:
+  - "https://supmua.dev/"
+  - "https://github.com/sup-heliotrope/sup"
+  - "https://github.com/sup-heliotrope/sup/blob/develop/README.md"
+  - "https://github.com/sup-heliotrope/sup/blob/develop/History.txt"
+  - "https://github.com/sup-heliotrope/sup/blob/develop/LICENSE"
+  - "https://github.com/sup-heliotrope/sup/blob/develop/lib/sup.rb"
+  - "https://github.com/sup-heliotrope/sup/blob/develop/bin/sup-add"
+  - "https://github.com/sup-heliotrope/sup/wiki"
+  - "https://rubygems.org/gems/sup"
+  - "https://packages.debian.org/search?keywords=sup-mail&searchon=names&exact=1"
+  - "https://packages.ubuntu.com/sup-mail"
+  - "https://marlam.de/msmtp/msmtp.html"

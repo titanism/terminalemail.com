@@ -1,0 +1,100 @@
+name: aerc
+slug: aerc
+type: client
+interface: tui
+summary: >-
+  Terminal email client written in Go with IMAP, JMAP, Maildir and notmuch backends and an embedded terminal for editing.
+description: >-
+  aerc is a full-screen terminal email client with tabs, vim-style keybindings and an embedded terminal that runs
+  the editor and other programs inside the interface. It reads IMAP, JMAP, Maildir and notmuch mailboxes, opens mbox
+  files read-only, and sends over SMTP or a sendmail command. It suits developers who review patches by email,
+  with built-in commands for applying and replying to patch series.
+website: https://aerc-mail.org/
+repo: https://git.sr.ht/~rjarry/aerc
+docs: https://man.sr.ht/~rjarry/aerc/
+license: MIT
+language: Go
+maintained: true
+latest_version: "0.22.0"
+lineage: "Continuation of the original aerc by Drew DeVault"
+platforms:
+  linux:
+    support: native
+    install:
+      - { via: apt, cmd: "sudo apt install aerc" }
+      - { via: dnf, cmd: "sudo dnf install aerc" }
+      - { via: pacman, cmd: "sudo pacman -S aerc" }
+  macos:
+    support: native
+    install:
+      - { via: Homebrew, cmd: "brew install aerc" }
+  windows:
+    support: wsl
+    note: "No native Windows build; runs in WSL."
+    install:
+      - { via: WSL, cmd: "sudo apt install aerc" }
+  bsd:
+    support: native
+    install:
+      - { via: FreeBSD pkg, cmd: "pkg install aerc" }
+      - { via: OpenBSD, cmd: "pkg_add aerc" }
+  android:
+    support: termux
+    install:
+      - { via: Termux, cmd: "pkg install aerc" }
+protocols: { imap: true, pop3: false, smtp: true, jmap: true, maildir: true, mbox: true, notmuch: true }
+features:
+  pgp: true
+  smime: false
+  oauth2: true
+  threads: true
+  search: "built-in; server-side for IMAP and JMAP; notmuch queries"
+  html: "via filters, w3m by default"
+  mouse: true
+  multiple_accounts: true
+  offline: "with mbsync or OfflineIMAP through the Maildir backend; IMAP header cache"
+  calendar: true
+  contacts: "via address-book-cmd, e.g. khard or the bundled carddav-query"
+  vim_keys: true
+  config: "INI-style files: accounts.conf, aerc.conf, binds.conf"
+pros:
+  - "Embedded terminal runs the editor and other commands inside aerc"
+  - "Built-in commands for applying and reviewing git patch series"
+  - "Supports JMAP and notmuch as well as IMAP and Maildir"
+cons:
+  - "No POP3 or S/MIME support"
+  - "mbox files open read-only"
+  - "No native Windows build"
+forward_email: |
+  # Forward Email: IMAP over SSL/TLS (993), SMTP over SSL/TLS (465)
+  # The @ in the username is URL-encoded as %40
+  [Forward Email]
+  source            = imaps://you%40example.com@imap.forwardemail.net:993
+  source-cred-cmd   = pass show email/forwardemail
+  outgoing          = smtps://you%40example.com@smtp.forwardemail.net:465
+  outgoing-cred-cmd = pass show email/forwardemail
+  from              = Your Name <you@example.com>
+  default           = INBOX
+  copy-to           = Sent Mail
+  postpone          = Drafts
+forward_email_file: "~/.config/aerc/accounts.conf (macOS: ~/Library/Preferences/aerc/accounts.conf)"
+sources:
+  - "https://aerc-mail.org/"
+  - "https://git.sr.ht/~rjarry/aerc"
+  - "https://git.sr.ht/~rjarry/aerc/tree/master/item/LICENSE"
+  - "https://git.sr.ht/~rjarry/aerc/tree/master/item/README.md"
+  - "https://git.sr.ht/~rjarry/aerc/tree/master/item/doc/aerc-accounts.5.scd"
+  - "https://git.sr.ht/~rjarry/aerc/tree/master/item/doc/aerc-imap.5.scd"
+  - "https://git.sr.ht/~rjarry/aerc/tree/master/item/doc/aerc-smtp.5.scd"
+  - "https://git.sr.ht/~rjarry/aerc/tree/master/item/doc/aerc-mbox.5.scd"
+  - "https://git.sr.ht/~rjarry/aerc/tree/master/item/doc/aerc-config.5.scd"
+  - "https://git.sr.ht/~rjarry/aerc/tree/master/item/doc/aerc.1.scd"
+  - "https://man.sr.ht/~rjarry/aerc/"
+  - "https://formulae.brew.sh/formula/aerc"
+  - "https://sources.debian.org/src/aerc/"
+  - "https://packages.fedoraproject.org/pkgs/aerc/aerc/"
+  - "https://archlinux.org/packages/extra/x86_64/aerc/"
+  - "https://www.freshports.org/mail/aerc/"
+  - "https://github.com/openbsd/ports/tree/master/mail/aerc"
+  - "https://github.com/termux/termux-packages/tree/master/packages/aerc"
+  - "https://github.com/forwardemail/forwardemail.net/blob/master/helpers/ensure-default-mailboxes.js"

@@ -1,0 +1,104 @@
+name: nmh
+slug: nmh
+type: client
+interface: cli
+summary: >-
+  The MH message handling system: separate shell commands to read, file, search and send mail stored one file per message.
+description: >-
+  nmh (new MH) is a set of small programs such as inc, scan, show, comp, repl and pick that you run from the shell instead of a single mail program.
+  Each message is a plain file in an MH folder, so ordinary Unix tools and scripts work on mail directly.
+  inc pulls mail from a local mbox or Maildir drop or from a POP3 server, and post sends through SMTP with optional TLS and SASL.
+  It suits users who want to script mail handling and compose with their own editor.
+website: https://www.nongnu.org/nmh/
+repo: https://git.savannah.gnu.org/cgit/nmh.git
+docs: https://git.savannah.gnu.org/cgit/nmh.git/tree/man
+license: BSD-3-Clause
+language: C
+maintained: true
+latest_version: "1.8"
+lineage: "Based on MH 6.8.3 from the RAND Corporation and the University of California"
+platforms:
+  linux:
+    support: native
+    install:
+      - { via: apt, cmd: "sudo apt install nmh" }
+      - { via: dnf, cmd: "sudo dnf install nmh" }
+      - { via: AUR, cmd: "yay -S nmh" }
+  macos:
+    support: native
+    install:
+      - { via: Homebrew, cmd: "brew install nmh" }
+  windows:
+    support: wsl
+    note: "No native Windows build; run it in WSL."
+    install:
+      - { via: WSL, cmd: "sudo apt install nmh" }
+  bsd:
+    support: native
+    install:
+      - { via: FreeBSD pkg, cmd: "pkg install nmh" }
+      - { via: OpenBSD, cmd: "pkg_add nmh" }
+  android:
+    support: termux
+    install:
+      - { via: Termux, cmd: "pkg install nmh" }
+protocols: { imap: external, pop3: true, smtp: true, jmap: false, maildir: true, mbox: true, notmuch: false }
+features:
+  pgp: false
+  smime: false
+  oauth2: false
+  threads: false
+  search: "pick command matches header fields and message text"
+  html: "via mhshow with an external converter such as w3m"
+  mouse: false
+  multiple_accounts: "via per-command switches or separate profiles"
+  offline: "full; messages are stored as local files"
+  calendar: "replies to invitations with mhical"
+  contacts: "aliases via MailAliases and the ali command"
+  vim_keys: false
+  config: "~/.mh_profile and mts.conf text files"
+pros:
+  - "Every action is a shell command, so mail handling is easy to script."
+  - "One file per message lets grep, find and other Unix tools work on mail."
+  - "Built-in POP3 and SMTP with TLS and SASL; reads mbox and Maildir drops."
+cons:
+  - "No IMAP; IMAP mail must be synced to a Maildir first and then incorporated."
+  - "No built-in OpenPGP or S/MIME, and no thread view."
+  - "SMTP authentication needs nmh built with Cyrus SASL and its PLAIN or LOGIN plugin."
+forward_email: |
+  # ~/.mh_profile
+  Path: Mail
+  Local-Mailbox: Your Name <you@example.com>
+  send: -server smtp.forwardemail.net -port 465 -initialtls -sasl -saslmech PLAIN -user you@example.com
+  inc: -host pop3.forwardemail.net -port 995 -initialtls -user you@example.com
+
+  # Optional per-user mts.conf: export MHMTSUSERCONF=~/.mts.conf
+  # mts: smtp
+  # servers: smtp.forwardemail.net
+
+  # Passwords: with no "credentials:" profile entry nmh reads ~/.netrc (chmod 600):
+  # machine smtp.forwardemail.net login you@example.com password YOUR-GENERATED-PASSWORD
+  # machine pop3.forwardemail.net login you@example.com password YOUR-GENERATED-PASSWORD
+
+  # Usage: inc (fetch over POP3), scan, show, comp (write), send
+  # For IMAP, sync with mbsync to ~/Maildir/INBOX and run: inc -file ~/Maildir/INBOX
+forward_email_file: "~/.mh_profile"
+sources:
+  - "https://www.nongnu.org/nmh/"
+  - "https://savannah.nongnu.org/projects/nmh/"
+  - "https://git.savannah.gnu.org/cgit/nmh.git"
+  - "https://git.savannah.gnu.org/cgit/nmh.git/tree/COPYRIGHT"
+  - "https://git.savannah.gnu.org/cgit/nmh.git/tree/man/inc.man"
+  - "https://git.savannah.gnu.org/cgit/nmh.git/tree/man/send.man"
+  - "https://git.savannah.gnu.org/cgit/nmh.git/tree/man/mh-profile.man"
+  - "https://git.savannah.gnu.org/cgit/nmh.git/tree/man/mh-tailor.man"
+  - "https://git.savannah.gnu.org/cgit/nmh.git/tree/man/mhical.man"
+  - "https://git.savannah.gnu.org/cgit/nmh.git/tree/sbr/credentials.c"
+  - "https://packages.debian.org/trixie/nmh"
+  - "https://mdapi.fedoraproject.org/rawhide/pkg/nmh"
+  - "https://aur.archlinux.org/packages/nmh"
+  - "https://formulae.brew.sh/formula/nmh"
+  - "https://github.com/Homebrew/homebrew-core/blob/main/Formula/n/nmh.rb"
+  - "https://github.com/freebsd/freebsd-ports/blob/main/mail/nmh/Makefile"
+  - "https://github.com/openbsd/ports/blob/master/mail/nmh/Makefile"
+  - "https://github.com/termux/termux-packages/blob/master/packages/nmh/build.sh"

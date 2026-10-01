@@ -1,0 +1,96 @@
+name: meli
+slug: meli
+type: client
+interface: tui
+summary: >-
+  Terminal email client written in Rust with IMAP, JMAP, notmuch, Maildir, mbox and NNTP backends and TOML configuration.
+description: >-
+  meli is a full-screen terminal email client for Linux, macOS and the BSDs. It supports several accounts at once
+  over IMAP, JMAP, notmuch, Maildir, read-only mbox and NNTP, sends through its built-in SMTP client or a shell
+  command, and can run the editor inside an embedded terminal. Configuration is a single TOML file, and most
+  settings can be overridden per account or per mailbox.
+website: https://meli-email.org/
+repo: https://git.meli-email.org/meli/meli
+docs: https://meli-email.org/documentation.html
+license: EUPL-1.2 OR GPL-3.0-or-later
+language: Rust
+maintained: true
+latest_version: "0.8.13"
+platforms:
+  linux:
+    support: native
+    install:
+      - { via: apt, cmd: "sudo apt install meli" }
+      - { via: cargo, cmd: "cargo install meli" }
+  macos:
+    support: native
+    install:
+      - { via: Homebrew, cmd: "brew install meli" }
+      - { via: MacPorts, cmd: "sudo port install meli" }
+      - { via: cargo, cmd: "cargo install meli" }
+  windows:
+    support: none
+    note: "No Windows build; the project lists BSD, Linux and macOS."
+    install: []
+  bsd:
+    support: native
+    install:
+      - { via: OpenBSD, cmd: "pkg_add meli" }
+      - { via: NetBSD pkgsrc, cmd: "pkgin install meli" }
+  android:
+    support: none
+    install: []
+protocols: { imap: true, pop3: false, smtp: true, jmap: true, maildir: true, mbox: true, notmuch: true }
+features:
+  pgp: true
+  smime: false
+  oauth2: "via script"
+  threads: true
+  search: "built-in; sqlite3 index by default; notmuch queries"
+  html: "via filter command, w3m by default"
+  mouse: true
+  multiple_accounts: true
+  offline: "IMAP header cache in sqlite3; full offline use with Maildir and mbsync"
+  calendar: false
+  contacts: "built-in contact list; reads vCard and mutt alias files"
+  vim_keys: true
+  config: "TOML file (config.toml)"
+pros:
+  - "Supports JMAP, notmuch, IMAP, Maildir and NNTP in one client"
+  - "Single TOML file with per-account and per-mailbox overrides"
+  - "Embedded terminal runs the editor inside the compose view"
+cons:
+  - "No POP3 or S/MIME support"
+  - "mbox support is read-only"
+  - "No Windows or Termux packages"
+forward_email: |
+  # Forward Email: IMAP over SSL/TLS (993), SMTP over SSL/TLS (465)
+  [accounts."forwardemail"]
+  format = "imap"
+  root_mailbox = "INBOX"
+  subscribed_mailboxes = ["*"]
+  identity = "you@example.com"
+  display_name = "Your Name"
+  server_hostname = "imap.forwardemail.net"
+  server_port = 993
+  use_tls = true
+  server_username = "you@example.com"
+  server_password_command = "pass show email/forwardemail"
+  send_mail = { hostname = "smtp.forwardemail.net", port = 465, auth = { type = "auto", username = "you@example.com", password = { type = "command_eval", value = "pass show email/forwardemail" } }, security = { type = "TLS" } }
+forward_email_file: "~/.config/meli/config.toml"
+sources:
+  - "https://meli-email.org/"
+  - "https://meli-email.org/documentation.html"
+  - "https://git.meli-email.org/meli/meli"
+  - "https://github.com/meli/meli"
+  - "https://github.com/meli/meli/blob/master/COPYING"
+  - "https://github.com/meli/meli/blob/master/README.md"
+  - "https://github.com/meli/meli/blob/v0.8.13/meli/docs/meli.conf.5"
+  - "https://github.com/meli/meli/blob/master/meli/src/version_migrations/v0_9_0.rs"
+  - "https://crates.io/crates/meli"
+  - "https://formulae.brew.sh/formula/meli"
+  - "https://ports.macports.org/port/meli/"
+  - "https://sources.debian.org/src/meli/"
+  - "https://github.com/openbsd/ports/tree/master/mail/meli"
+  - "https://cdn.netbsd.org/pub/pkgsrc/current/pkgsrc/mail/meli/Makefile"
+  - "https://github.com/forwardemail/forwardemail.net/blob/master/helpers/ensure-default-mailboxes.js"

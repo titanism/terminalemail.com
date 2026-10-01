@@ -1,0 +1,97 @@
+name: Wanderlust
+slug: wanderlust
+type: client
+interface: emacs
+summary: >-
+  Mail and news reader for Emacs, written in Emacs Lisp, with built-in IMAP, POP3, NNTP and SMTP support.
+description: >-
+  Wanderlust is an Emacs mail client that talks to IMAP, POP3 and NNTP servers directly and also reads local
+  Maildir and MH folders. Folders are named with a compact prefix syntax (for example %inbox for IMAP), and it can
+  cache messages for disconnected use. Development continues on GitHub as unreleased 2.15.9 snapshots, distributed
+  through MELPA and distribution packages. It suits Emacs users who want a client that needs no separate sync or
+  SMTP tool.
+website: https://github.com/wanderlust/wanderlust
+repo: https://github.com/wanderlust/wanderlust
+docs: https://wanderlust.github.io/wl-docs/
+license: GPL-2.0-or-later
+language: Emacs Lisp
+maintained: true
+latest_version: "2.15.9"
+platforms:
+  linux:
+    support: native
+    install:
+      - { via: apt, cmd: "sudo apt install wl" }
+      - { via: pacman, cmd: "sudo pacman -S wanderlust" }
+      - { via: MELPA, cmd: "M-x package-install RET wanderlust RET" }
+  macos:
+    support: native
+    install:
+      - { via: MELPA, cmd: "M-x package-install RET wanderlust RET" }
+  windows:
+    support: wsl
+    note: "Native Windows Emacs is not documented upstream; use WSL."
+    install:
+      - { via: WSL, cmd: "sudo apt install wl" }
+  bsd:
+    support: native
+    install:
+      - { via: FreeBSD pkg, cmd: "pkg install wanderlust" }
+  android:
+    support: termux
+    install:
+      - { via: Termux, cmd: "pkg install emacs, then M-x package-install RET wanderlust RET" }
+protocols: { imap: true, pop3: true, smtp: true, jmap: false, maildir: true, mbox: false, notmuch: "external" }
+features:
+  pgp: true
+  smime: false
+  oauth2: "via oauth2.el"
+  threads: true
+  search: "IMAP server-side search; local search via mu, notmuch, grep or namazu"
+  html: "via mime-w3m (emacs-w3m)"
+  mouse: true
+  multiple_accounts: true
+  offline: "message cache and disconnected operation"
+  calendar: false
+  contacts: "built-in address book"
+  vim_keys: false
+  config: "Emacs Lisp in ~/.wl, folder list in ~/.folders"
+pros:
+  - "Built-in IMAP, POP3 and SMTP; no external sync or send tool needed"
+  - "Offline cache with disconnected operation"
+  - "Packaged in Debian, Ubuntu, Arch, FreeBSD and MELPA"
+cons:
+  - "No formal release in many years; only 2.15.9 snapshots"
+  - "Folder syntax and the APEL/FLIM/SEMI dependency stack take time to learn"
+  - "Debian and Ubuntu ship an older snapshot than MELPA and Arch"
+forward_email: |
+  ;; ~/.wl
+  (setq elmo-imap4-default-server "imap.forwardemail.net"
+        elmo-imap4-default-port 993
+        elmo-imap4-default-stream-type 'ssl
+        elmo-imap4-default-user "you@example.com"
+        elmo-imap4-default-authenticate-type 'clear
+        wl-default-folder "%inbox"
+        wl-fcc "%\"Sent Mail\""
+        wl-from "Your Name <you@example.com>"
+        wl-local-domain "example.com"
+        wl-smtp-posting-server "smtp.forwardemail.net"
+        wl-smtp-posting-port 465
+        wl-smtp-connection-type 'ssl
+        wl-smtp-posting-user "you@example.com"
+        wl-smtp-authenticate-type "plain")
+  ;; Wanderlust prompts for the alias' generated password on first connect.
+forward_email_file: "~/.wl"
+sources:
+  - "https://github.com/wanderlust/wanderlust"
+  - "https://github.com/wanderlust/wanderlust/blob/master/README.md"
+  - "https://github.com/wanderlust/wanderlust/blob/master/COPYING"
+  - "https://github.com/wanderlust/wanderlust/blob/master/wanderlust-pkg.el"
+  - "https://github.com/wanderlust/wanderlust/blob/master/doc/wl.texi"
+  - "https://github.com/wanderlust/wanderlust/commits/master"
+  - "https://wanderlust.github.io/wl-docs/"
+  - "https://melpa.org/#/wanderlust"
+  - "https://packages.debian.org/search?keywords=wl&searchon=names&exact=1"
+  - "https://packages.ubuntu.com/wl"
+  - "https://archlinux.org/packages/extra/any/wanderlust/"
+  - "https://www.freshports.org/mail/wanderlust/"

@@ -1,0 +1,97 @@
+name: getmail6
+slug: getmail6
+type: tool
+interface: cli
+summary: >-
+  Mail retriever that downloads messages over POP3 or IMAP into Maildir, mbox or an external delivery program.
+description: >-
+  getmail6 is the Python 3 continuation of getmail. It fetches mail one way from POP3 or IMAP servers and delivers
+  it to a Maildir, an mboxrd file or a program such as procmail or maildrop, with optional filtering. Each account
+  has its own rc file. It suits users who want a simple download into local storage rather than a two-way IMAP sync.
+website: https://getmail6.org/
+repo: https://github.com/getmail6/getmail6
+docs: https://getmail6.org/configuration.html
+license: GPL-2.0-only
+language: Python
+maintained: true
+latest_version: "6.20.01"
+lineage: "Python 3 fork of getmail 5 by Charles Cazabon"
+platforms:
+  linux:
+    support: native
+    install:
+      - { via: apt, cmd: "sudo apt install getmail6" }
+      - { via: dnf, cmd: "sudo dnf install getmail6" }
+      - { via: pip, cmd: "pip install getmail6" }
+  macos:
+    support: native
+    install:
+      - { via: Homebrew, cmd: "brew install getmail6" }
+      - { via: MacPorts, cmd: "sudo port install getmail6" }
+  windows:
+    support: wsl
+    note: "No native Windows package; use WSL."
+    install:
+      - { via: WSL, cmd: "sudo apt install getmail6" }
+  bsd:
+    support: native
+    install:
+      - { via: FreeBSD pkg, cmd: "pkg install py312-getmail6" }
+  android:
+    support: none
+    install: []
+protocols: { imap: true, pop3: true, smtp: false, jmap: false, maildir: true, mbox: true, notmuch: false }
+features:
+  pgp: false
+  smime: false
+  oauth2: true
+  threads: false
+  search: false
+  html: false
+  mouse: false
+  multiple_accounts: true
+  offline: "downloads mail to a local Maildir or mbox"
+  calendar: false
+  contacts: false
+  vim_keys: false
+  config: "one getmailrc INI file per account in ~/.config/getmail/"
+pros:
+  - "Supports both POP3 and IMAP, including SSL variants"
+  - "Delivers to Maildir, mboxrd or an external MDA with filters"
+  - "password_command reads the password from an external program"
+cons:
+  - "One-way download only; changes are not synced back to the server"
+  - "Needs one rc file per account"
+  - "No sending; pair it with an SMTP tool such as msmtp"
+forward_email: |
+  # IMAP over SSL into a Maildir (create it first: mkdir -p ~/Mail/forwardemail/INBOX/{cur,new,tmp})
+  [retriever]
+  type = SimpleIMAPSSLRetriever
+  server = imap.forwardemail.net
+  port = 993
+  username = you@example.com
+  password_command = ("pass", "show", "forwardemail/you@example.com")
+
+  [destination]
+  type = Maildir
+  path = ~/Mail/forwardemail/INBOX/
+
+  [options]
+  read_all = false
+  delete = false
+
+  # For POP3 instead: type = SimplePOP3SSLRetriever, server = pop3.forwardemail.net, port = 995
+forward_email_file: "~/.config/getmail/getmailrc"
+sources:
+  - "https://getmail6.org/"
+  - "https://getmail6.org/configuration.html"
+  - "https://github.com/getmail6/getmail6"
+  - "https://github.com/getmail6/getmail6/blob/master/README"
+  - "https://github.com/getmail6/getmail6/blob/master/docs/configuration.txt"
+  - "https://github.com/getmail6/getmail6/blob/master/docs/getmailrc-examples"
+  - "https://packages.debian.org/search?keywords=getmail6&searchon=names&exact=1"
+  - "https://packages.ubuntu.com/getmail6"
+  - "https://mdapi.fedoraproject.org/rawhide/pkg/getmail6"
+  - "https://formulae.brew.sh/formula/getmail6"
+  - "https://ports.macports.org/port/getmail6/"
+  - "https://www.freshports.org/mail/getmail6/"

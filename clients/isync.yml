@@ -1,0 +1,113 @@
+name: isync
+slug: isync
+type: tool
+interface: cli
+summary: >-
+  Command line program (mbsync) that syncs IMAP mailboxes with local Maildir folders in both directions.
+description: >-
+  isync is the project name; the program is called mbsync. It keeps a local Maildir copy of IMAP folders and
+  propagates new messages, deletions and flag changes both ways, using one state file per mailbox pair. It is a
+  common companion to Maildir-based clients such as NeoMutt, aerc, mu4e and notmuch. Sending mail is out of scope;
+  pair it with an SMTP tool such as msmtp.
+website: https://isync.sourceforge.io/
+repo: https://sourceforge.net/p/isync/isync/
+docs: https://isync.sourceforge.io/mbsync.html
+license: GPL-2.0-or-later
+language: C
+maintained: true
+latest_version: "1.5.1"
+platforms:
+  linux:
+    support: native
+    install:
+      - { via: apt, cmd: "sudo apt install isync" }
+      - { via: dnf, cmd: "sudo dnf install isync" }
+      - { via: pacman, cmd: "sudo pacman -S isync" }
+      - { via: apk, cmd: "sudo apk add isync" }
+  macos:
+    support: native
+    install:
+      - { via: Homebrew, cmd: "brew install isync" }
+      - { via: MacPorts, cmd: "sudo port install isync" }
+  windows:
+    support: wsl
+    note: "No native Windows build; use WSL."
+    install:
+      - { via: WSL, cmd: "sudo apt install isync" }
+  bsd:
+    support: native
+    install:
+      - { via: FreeBSD pkg, cmd: "pkg install isync" }
+      - { via: OpenBSD, cmd: "pkg_add isync" }
+  android:
+    support: termux
+    install:
+      - { via: Termux, cmd: "pkg install isync" }
+protocols: { imap: true, pop3: false, smtp: false, jmap: false, maildir: true, mbox: false, notmuch: false }
+features:
+  pgp: false
+  smime: false
+  oauth2: "via a Cyrus SASL XOAUTH2 plugin and PassCmd"
+  threads: false
+  search: false
+  html: false
+  mouse: false
+  multiple_accounts: true
+  offline: "keeps a full local Maildir copy"
+  calendar: false
+  contacts: false
+  vim_keys: false
+  config: "~/.mbsyncrc or ~/.config/isyncrc text file"
+pros:
+  - "Two-way sync of messages, deletions and flags between IMAP and Maildir"
+  - "PassCmd reads the password from any command, such as pass or gpg"
+  - "Packaged for nearly every Linux distribution, macOS, the BSDs and Termux"
+cons:
+  - "Version 1.5 renamed options (SSLType to TLSType), so older guides need edits"
+  - "Only IMAP and Maildir; no POP3 and no sending"
+  - "No built-in daemon or IDLE watch; runs from cron, a timer or the mail client"
+forward_email: |
+  # Sync a Forward Email mailbox to ~/Mail/forwardemail (run: mkdir -p ~/Mail/forwardemail)
+  # TLSType needs isync 1.5 or newer; on 1.4 write "SSLType IMAPS" instead.
+  IMAPAccount forwardemail
+  Host imap.forwardemail.net
+  Port 993
+  User you@example.com
+  PassCmd "pass show forwardemail/you@example.com"
+  TLSType IMAPS
+
+  IMAPStore forwardemail-remote
+  Account forwardemail
+
+  MaildirStore forwardemail-local
+  SubFolders Verbatim
+  Path ~/Mail/forwardemail/
+  Inbox ~/Mail/forwardemail/INBOX
+
+  Channel forwardemail
+  Far :forwardemail-remote:
+  Near :forwardemail-local:
+  Patterns *
+  Create Both
+  Expunge Both
+  SyncState *
+
+  # Then run: mbsync forwardemail
+forward_email_file: "~/.mbsyncrc"
+sources:
+  - "https://isync.sourceforge.io/"
+  - "https://sourceforge.net/p/isync/isync/ci/master/tree/"
+  - "https://sourceforge.net/p/isync/isync/ci/master/tree/NEWS"
+  - "https://sourceforge.net/p/isync/isync/ci/master/tree/src/mbsync.1.in"
+  - "https://sourceforge.net/p/isync/isync/ci/master/tree/src/mbsyncrc.sample"
+  - "https://sourceforge.net/p/isync/isync/ci/master/tree/LICENSES/"
+  - "https://packages.debian.org/search?keywords=isync&searchon=names&exact=1"
+  - "https://packages.ubuntu.com/isync"
+  - "https://mdapi.fedoraproject.org/rawhide/pkg/isync"
+  - "https://archlinux.org/packages/extra/x86_64/isync/"
+  - "https://pkgs.alpinelinux.org/packages?name=isync"
+  - "https://formulae.brew.sh/formula/isync"
+  - "https://ports.macports.org/port/isync/"
+  - "https://www.freshports.org/mail/isync/"
+  - "https://openports.pl/path/mail/isync"
+  - "https://github.com/termux/termux-packages/tree/master/packages/isync"

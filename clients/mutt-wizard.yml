@@ -1,0 +1,95 @@
+name: mutt-wizard
+slug: mutt-wizard
+type: tool
+interface: cli
+summary: >-
+  Shell script that sets up NeoMutt, isync and msmtp for an email account, with passwords stored in pass.
+description: >-
+  mutt-wizard provides the mw command, which writes NeoMutt, mbsync (isync) and msmtp configuration for an account and stores its password with pass, encrypted to your GPG key.
+  It looks up IMAP and SMTP settings for known providers and accepts custom servers and ports for others, and can use mpop for POP3 instead of IMAP.
+  It also installs a mailsync script that syncs mail, indexes it with notmuch and can run on a timer.
+  It suits NeoMutt users who want a working offline setup without writing the configuration by hand.
+website: https://muttwizard.com/
+repo: https://github.com/LukeSmithxyz/mutt-wizard
+docs: https://github.com/LukeSmithxyz/mutt-wizard/blob/master/README.md
+license: GPL-3.0-only
+language: Shell
+maintained: true
+latest_version: "v3.3.1"
+platforms:
+  linux:
+    support: native
+    install:
+      - { via: apt, cmd: "sudo apt install mutt-wizard" }
+      - { via: AUR, cmd: "yay -S mutt-wizard-git" }
+      - { via: source, cmd: "git clone https://github.com/LukeSmithxyz/mutt-wizard && cd mutt-wizard && sudo make install" }
+  macos:
+    support: source
+    note: "No Homebrew formula; install NeoMutt, isync, msmtp and pass with Homebrew, then install mutt-wizard from source. mailsync has macOS-specific notification code."
+    install:
+      - { via: source, cmd: "git clone https://github.com/LukeSmithxyz/mutt-wizard && cd mutt-wizard && sudo make install" }
+  windows:
+    support: wsl
+    note: "No native build; use the Debian package inside WSL."
+    install:
+      - { via: WSL, cmd: "sudo apt install mutt-wizard" }
+  bsd:
+    support: native
+    install:
+      - { via: OpenBSD, cmd: "pkg_add mutt-wizard" }
+  android:
+    support: none
+    note: "No Termux package."
+    install: []
+protocols: { imap: external, pop3: external, smtp: external, jmap: false, maildir: true, mbox: false, notmuch: external }
+features:
+  pgp: true
+  smime: false
+  oauth2: false
+  threads: true
+  search: "notmuch, set up by mailsync"
+  html: "via lynx in NeoMutt"
+  mouse: false
+  multiple_accounts: true
+  offline: "with isync, or mpop for POP3"
+  calendar: false
+  contacts: "via abook"
+  vim_keys: true
+  config: "generated NeoMutt, isync and msmtp files"
+pros:
+  - "Sets up NeoMutt, mbsync and msmtp for an account with one command."
+  - "Passwords are kept in pass, encrypted with your GPG key, not in plain text."
+  - "Adds vim-style keys, account switching and mailbox shortcuts to NeoMutt."
+cons:
+  - "Requires pass and a GPG key before an account can be added."
+  - "Defaults assume English mailbox names; other names may need manual edits."
+  - "The latest tagged release is old; most fixes are only on the master branch."
+forward_email: |
+  # IMAP (mbsync) + SMTP (msmtp); the password is prompted for and stored in pass
+  mw -a you@example.com -n "Your Name" \
+     -i imap.forwardemail.net -I 993 \
+     -s smtp.forwardemail.net -S 465
+
+  # Or POP3 with mpop instead of IMAP:
+  # mw -a you@example.com -n "Your Name" -p -i pop3.forwardemail.net -I 995 -s smtp.forwardemail.net -S 465
+
+  # Then: mailsync    (download mail)
+  #       neomutt     (read and send)
+forward_email_file: "Generated: ~/.config/mutt/, ~/.mbsyncrc and ~/.config/msmtp/config"
+sources:
+  - "https://muttwizard.com/"
+  - "https://github.com/LukeSmithxyz/mutt-wizard"
+  - "https://github.com/LukeSmithxyz/mutt-wizard/blob/master/README.md"
+  - "https://github.com/LukeSmithxyz/mutt-wizard/blob/master/LICENSE"
+  - "https://github.com/LukeSmithxyz/mutt-wizard/blob/master/bin/mw"
+  - "https://github.com/LukeSmithxyz/mutt-wizard/blob/master/bin/mailsync"
+  - "https://github.com/LukeSmithxyz/mutt-wizard/blob/master/share/mbsync-temp"
+  - "https://github.com/LukeSmithxyz/mutt-wizard/blob/master/share/msmtp-temp"
+  - "https://github.com/LukeSmithxyz/mutt-wizard/blob/master/Makefile"
+  - "https://github.com/LukeSmithxyz/mutt-wizard/releases/tag/v3.3.1"
+  - "https://packages.debian.org/trixie/mutt-wizard"
+  - "https://aur.archlinux.org/packages/mutt-wizard-git"
+  - "https://aur.archlinux.org/packages/mutt-wizard"
+  - "https://github.com/openbsd/ports/blob/master/mail/mutt-wizard/Makefile"
+  - "https://github.com/termux/termux-packages/tree/master/packages"
+  - "https://formulae.brew.sh/api/formula.json"

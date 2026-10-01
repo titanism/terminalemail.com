@@ -1,0 +1,115 @@
+name: Gnus
+slug: gnus
+type: client
+interface: emacs
+summary: >-
+  Mail and news reader built into GNU Emacs, with back ends for IMAP, POP3, local mail folders and NNTP.
+description: >-
+  Gnus ships with GNU Emacs, so it needs no separate install once Emacs is present.
+  It treats mail folders, IMAP mailboxes and Usenet newsgroups alike as groups, and can talk to IMAP directly or work on local Maildir, MH and mbox stores.
+  Sending goes through Emacs message mode and smtpmail.
+  It suits Emacs users who want one program for mail, newsgroups and feeds and are willing to learn its group and summary model.
+website: https://www.gnus.org/
+repo: https://git.savannah.gnu.org/cgit/emacs.git/tree/lisp/gnus
+docs: https://www.gnu.org/software/emacs/manual/gnus.html
+license: GPL-3.0-or-later
+language: Emacs Lisp
+maintained: true
+latest_version: "5.13 (bundled with Emacs 31.1)"
+lineage: "Rewrite of GNUS, the earlier Emacs newsreader; part of GNU Emacs"
+platforms:
+  linux:
+    support: native
+    install:
+      - { via: apt, cmd: "sudo apt install emacs" }
+      - { via: dnf, cmd: "sudo dnf install emacs" }
+      - { via: pacman, cmd: "sudo pacman -S emacs" }
+  macos:
+    support: native
+    install:
+      - { via: Homebrew, cmd: "brew install emacs" }
+      - { via: Homebrew Cask, cmd: "brew install --cask emacs-app" }
+  windows:
+    support: native
+    note: "Gnus runs in native Windows builds of GNU Emacs."
+    install:
+      - { via: winget, cmd: "winget install GNU.Emacs" }
+      - { via: Scoop, cmd: "scoop bucket add extras && scoop install extras/emacs" }
+  bsd:
+    support: native
+    install:
+      - { via: FreeBSD pkg, cmd: "pkg install emacs" }
+      - { via: OpenBSD, cmd: "pkg_add emacs" }
+  android:
+    support: termux
+    install:
+      - { via: Termux, cmd: "pkg install emacs" }
+protocols: { imap: true, pop3: true, smtp: true, jmap: false, maildir: true, mbox: true, notmuch: external }
+features:
+  pgp: true
+  smime: true
+  oauth2: "via plugin"
+  threads: true
+  search: "gnus-search: IMAP SEARCH, or notmuch, mu, mairix and other local indexers"
+  html: "built-in, rendered with the Emacs shr library"
+  mouse: true
+  multiple_accounts: true
+  offline: "via the Gnus agent or local Maildir back ends"
+  calendar: "replies to invitations with gnus-icalendar"
+  contacts: "via BBDB or EUDC"
+  vim_keys: false
+  config: "Emacs Lisp in init.el or ~/.gnus.el"
+pros:
+  - "Included with every GNU Emacs install, including native Windows builds."
+  - "Reads IMAP directly, plus local Maildir, MH and mbox stores and NNTP newsgroups."
+  - "Scoring, splitting and the Gnus agent allow detailed filtering and offline reading."
+cons:
+  - "The group, summary and article model takes time to learn."
+  - "IMAP access runs inside Emacs, so large mailboxes can make Emacs wait."
+  - "Configuration is Emacs Lisp spread across many variables."
+forward_email: |
+  ;; ~/.emacs.d/init.el (or ~/.gnus.el)
+  (setq user-mail-address "you@example.com"
+        user-full-name "Your Name"
+        gnus-select-method
+        '(nnimap "forwardemail"
+                 (nnimap-address "imap.forwardemail.net")
+                 (nnimap-server-port 993)
+                 (nnimap-stream tls)
+                 (nnimap-user "you@example.com"))
+        gnus-message-archive-group "nnimap+forwardemail:Sent Mail"
+        message-send-mail-function 'smtpmail-send-it
+        smtpmail-smtp-server "smtp.forwardemail.net"
+        smtpmail-smtp-service 465
+        smtpmail-stream-type 'ssl
+        smtpmail-smtp-user "you@example.com")
+
+  ;; Passwords in ~/.authinfo.gpg (read by Emacs auth-source):
+  ;; machine imap.forwardemail.net login you@example.com port 993 password YOUR-GENERATED-PASSWORD
+  ;; machine smtp.forwardemail.net login you@example.com port 465 password YOUR-GENERATED-PASSWORD
+  ;; Start with M-x gnus
+forward_email_file: "~/.emacs.d/init.el"
+sources:
+  - "https://www.gnus.org/"
+  - "https://gnus.org/manual.html"
+  - "https://gnus.org/history.html"
+  - "https://www.gnu.org/software/emacs/manual/gnus.html"
+  - "https://github.com/emacs-mirror/emacs/blob/emacs-31/lisp/gnus/gnus.el"
+  - "https://github.com/emacs-mirror/emacs/blob/emacs-31/lisp/gnus/nnimap.el"
+  - "https://github.com/emacs-mirror/emacs/blob/emacs-31/lisp/gnus/gnus-search.el"
+  - "https://github.com/emacs-mirror/emacs/blob/emacs-31/lisp/gnus/gnus-icalendar.el"
+  - "https://github.com/emacs-mirror/emacs/blob/emacs-31/lisp/gnus/nnmaildir.el"
+  - "https://github.com/emacs-mirror/emacs/blob/emacs-31/lisp/gnus/mml-smime.el"
+  - "https://github.com/emacs-mirror/emacs/blob/emacs-31/lisp/mail/smtpmail.el"
+  - "https://ftp.gnu.org/gnu/emacs/"
+  - "https://packages.debian.org/trixie/emacs"
+  - "https://mdapi.fedoraproject.org/rawhide/pkg/emacs"
+  - "https://archlinux.org/packages/extra/x86_64/emacs/"
+  - "https://formulae.brew.sh/formula/emacs"
+  - "https://formulae.brew.sh/cask/emacs-app"
+  - "https://github.com/microsoft/winget-pkgs/tree/master/manifests/g/GNU/Emacs"
+  - "https://github.com/ScoopInstaller/Extras/blob/master/bucket/emacs.json"
+  - "https://github.com/freebsd/freebsd-ports/blob/main/editors/emacs/Makefile"
+  - "https://github.com/openbsd/ports/blob/master/editors/emacs/Makefile"
+  - "https://github.com/termux/termux-packages/blob/master/packages/emacs/build.sh"
+  - "https://github.com/forwardemail/forwardemail.net/blob/master/helpers/ensure-default-mailboxes.js"

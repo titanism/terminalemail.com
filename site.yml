@@ -1,0 +1,14 @@
+# Site settings used by scripts/build.js.
+
+title: Terminal Email
+tagline: Terminal email clients for Linux, macOS, Windows, BSD and Android, compared by the facts.
+url: https://terminalemail.com
+# GitHub repository that holds this site. Used for edit links, issues and discussions.
+repo: forwardemail/terminalemail.com
+branch: main
+# Set BASE_PATH=/repo-name when serving from username.github.io/repo-name instead of a custom domain.
+base_path: ''
+# Shown in the footer of every page.
+disclosure: >-
+  Terminal Email is made by Forward Email, whose terminal app is featured here.
+  Every other client is listed with the same facts, links to its sources, and setup steps that work with any provider.

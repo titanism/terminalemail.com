@@ -1,0 +1,130 @@
+name: alot
+slug: alot
+type: client
+interface: tui
+summary: >-
+  Terminal mail reader written in Python that works on a local notmuch database, with tag-based search and threads.
+description: >-
+  alot is a full-screen terminal front end for the notmuch mail indexer, offered as an alternative to the notmuch
+  Emacs mode. It reads mail from a local notmuch database, so remote mail must first be synced into a Maildir with a
+  tool such as mbsync or OfflineIMAP, and it sends through a sendmail-compatible command such as msmtp. It suits
+  users who organize mail with tags and searches instead of folders, and it can be extended with Python hooks.
+website: https://alot.readthedocs.io/
+repo: https://github.com/pazz/alot
+docs: https://alot.readthedocs.io/en/latest/
+license: GPL-3.0-or-later
+language: Python
+maintained: true
+latest_version: "0.12"
+platforms:
+  linux:
+    support: native
+    install:
+      - { via: apt, cmd: "sudo apt install alot" }
+      - { via: dnf, cmd: "sudo dnf install alot" }
+      - { via: pacman, cmd: "sudo pacman -S alot" }
+  macos:
+    support: native
+    install:
+      - { via: Homebrew, cmd: "brew install alot" }
+  windows:
+    support: wsl
+    note: "No native Windows build; runs in WSL."
+    install:
+      - { via: WSL, cmd: "sudo apt install alot" }
+  bsd:
+    support: native
+    note: "The FreeBSD port is an older release (0.9)."
+    install:
+      - { via: FreeBSD pkg, cmd: "pkg install mail/py-alot" }
+  android:
+    support: none
+    install: []
+protocols: { imap: external, pop3: external, smtp: external, jmap: false, maildir: true, mbox: false, notmuch: true }
+features:
+  pgp: true
+  smime: false
+  oauth2: false
+  threads: true
+  search: "notmuch queries"
+  html: "via mailcap, e.g. w3m -dump"
+  mouse: true
+  multiple_accounts: true
+  offline: "always; reads a local notmuch database"
+  calendar: false
+  contacts: "via an external lookup command such as abook, khard or notmuch address"
+  vim_keys: true
+  config: "INI-style config file plus optional Python hooks"
+pros:
+  - "Tag-based searches through notmuch instead of folders"
+  - "Full PGP/MIME signing and encryption"
+  - "Python hooks for custom behavior and formatting"
+cons:
+  - "Needs separate tools to fetch mail (mbsync) and send it (msmtp)"
+  - "No direct IMAP, POP3 or SMTP support"
+  - "No S/MIME support"
+forward_email: |
+  # alot reads a local notmuch database. Sync Forward Email over IMAP
+  # into a Maildir with mbsync, index it with notmuch, and send with msmtp.
+
+  # ~/.mbsyncrc (isync 1.5+; older versions use SSLType instead of TLSType)
+  IMAPAccount forwardemail
+  Host imap.forwardemail.net
+  Port 993
+  TLSType IMAPS
+  User you@example.com
+  PassCmd "pass show email/forwardemail"
+
+  IMAPStore forwardemail-remote
+  Account forwardemail
+
+  MaildirStore forwardemail-local
+  Path ~/Mail/forwardemail/
+  Inbox ~/Mail/forwardemail/INBOX
+  SubFolders Verbatim
+
+  Channel forwardemail
+  Far :forwardemail-remote:
+  Near :forwardemail-local:
+  Patterns *
+  Create Both
+  SyncState *
+
+  # Then run: mbsync forwardemail && notmuch setup && notmuch new
+
+  # ~/.config/msmtp/config
+  account forwardemail
+  host smtp.forwardemail.net
+  port 465
+  tls on
+  tls_starttls off
+  auth on
+  user you@example.com
+  passwordeval "pass show email/forwardemail"
+  from you@example.com
+
+  # ~/.config/alot/config
+  [accounts]
+      [[forwardemail]]
+          realname = Your Name
+          address = you@example.com
+          sendmail_command = msmtp --account=forwardemail -t
+          sent_box = maildir://~/Mail/forwardemail/Sent Mail
+          draft_box = maildir://~/Mail/forwardemail/Drafts
+forward_email_file: "~/.config/alot/config (plus ~/.mbsyncrc and ~/.config/msmtp/config)"
+sources:
+  - "https://github.com/pazz/alot"
+  - "https://github.com/pazz/alot/blob/master/COPYING"
+  - "https://github.com/pazz/alot/blob/master/pyproject.toml"
+  - "https://github.com/pazz/alot/blob/master/README.md"
+  - "https://alot.readthedocs.io/en/latest/"
+  - "https://alot.readthedocs.io/en/latest/installation.html"
+  - "https://alot.readthedocs.io/en/latest/configuration/accounts.html"
+  - "https://alot.readthedocs.io/en/latest/configuration/config_options.html"
+  - "https://formulae.brew.sh/formula/alot"
+  - "https://sources.debian.org/src/alot/"
+  - "https://packages.fedoraproject.org/pkgs/alot/alot/"
+  - "https://archlinux.org/packages/extra/any/alot/"
+  - "https://www.freshports.org/mail/py-alot/"
+  - "https://manpages.debian.org/trixie/isync/mbsync.1.en.html"
+  - "https://github.com/forwardemail/forwardemail.net/blob/master/helpers/ensure-default-mailboxes.js"

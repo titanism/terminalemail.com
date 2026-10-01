@@ -1,0 +1,103 @@
+name: S-nail
+slug: s-nail
+type: client
+interface: cli
+summary: >-
+  Command-line mail program that implements POSIX mailx, with MIME, IMAP, POP3, SMTP, Maildir and S/MIME support.
+description: >-
+  S-nail is a fork of Heirloom mailx and works as a POSIX mailx(1) for reading and sending mail from a line-oriented prompt or from scripts.
+  It speaks POP3, IMAP and SMTP itself, reads mbox and Maildir folders, and supports S/MIME signing and encryption.
+  Upstream notes that its IMAP code is kept at an older level and should be used with care.
+  It suits users who want a classic mail command for shell scripts and quick terminal use.
+website: https://www.sdaoden.eu/code.html#s-mailx
+repo: https://git.sdaoden.eu/browse/s-nail.git
+docs: https://www.sdaoden.eu/code-nail.html
+license: ISC AND BSD-2-Clause AND BSD-3-Clause AND BSD-4-Clause
+language: C
+maintained: true
+latest_version: "14.9.25"
+lineage: "Fork of Heirloom mailx, which descends from BSD Mail"
+platforms:
+  linux:
+    support: native
+    install:
+      - { via: apt, cmd: "sudo apt install s-nail" }
+      - { via: dnf, cmd: "sudo dnf install s-nail" }
+      - { via: pacman, cmd: "sudo pacman -S s-nail" }
+  macos:
+    support: native
+    install:
+      - { via: Homebrew, cmd: "brew install s-nail" }
+  windows:
+    support: wsl
+    note: "No native Windows build; run it in WSL."
+    install:
+      - { via: WSL, cmd: "sudo apt install s-nail" }
+  bsd:
+    support: native
+    install:
+      - { via: FreeBSD pkg, cmd: "pkg install s-nail" }
+      - { via: OpenBSD, cmd: "pkg_add s-nail" }
+  android:
+    support: none
+    note: "No Termux package."
+    install: []
+protocols: { imap: true, pop3: true, smtp: true, jmap: false, maildir: true, mbox: true, notmuch: false }
+features:
+  pgp: false
+  smime: true
+  oauth2: "via script"
+  threads: true
+  search: "built-in message specifications and the search command; IMAP SEARCH on IMAP folders"
+  html: "built-in tag-soup filter or external viewer via mailcap"
+  mouse: false
+  multiple_accounts: true
+  offline: "IMAP cache with disconnected mode"
+  calendar: false
+  contacts: "aliases via the alias command"
+  vim_keys: false
+  config: "~/.mailrc command file"
+pros:
+  - "Drop-in POSIX mailx, so it works in existing shell scripts and cron jobs."
+  - "Built-in SMTP, POP3 and IMAP with TLS; no separate sync or send tool needed."
+  - "S/MIME signing and encryption are built in."
+cons:
+  - "Line-oriented prompt instead of a full-screen interface."
+  - "No built-in OpenPGP; upstream documents a gpg pipe workaround only."
+  - "IMAP support is kept at an older code level and upstream advises care."
+forward_email: |
+  # ~/.mailrc  (start with: s-nail -A forwardemail)
+  set v15-compat
+  set tls-verify=strict
+  # Read credentials from an encrypted netrc file
+  set netrc-lookup netrc-pipe='gpg -qd ~/.netrc.gpg'
+
+  account forwardemail {
+    set from='Your Name <you@example.com>'
+    set folder=imaps://you%40example.com@imap.forwardemail.net \
+        inbox=imaps://you%40example.com@imap.forwardemail.net/INBOX \
+        record="+Sent Mail"
+    set mta=smtps://you%40example.com@smtp.forwardemail.net:465
+  }
+
+  # Decrypted contents of ~/.netrc.gpg:
+  # machine imap.forwardemail.net login you@example.com password YOUR-GENERATED-PASSWORD
+  # machine smtp.forwardemail.net login you@example.com password YOUR-GENERATED-PASSWORD
+  # For POP3 instead of IMAP: set inbox=pop3s://you%40example.com@pop3.forwardemail.net
+forward_email_file: "~/.mailrc"
+sources:
+  - "https://www.sdaoden.eu/code.html"
+  - "https://www.sdaoden.eu/code-nail.html"
+  - "https://git.sdaoden.eu/browse/s-nail.git"
+  - "https://git.sdaoden.eu/browse/s-nail.git/tree/COPYING?h=v14.9.25"
+  - "https://git.sdaoden.eu/browse/s-nail.git/tree/README?h=v14.9.25"
+  - "https://git.sdaoden.eu/browse/s-nail.git/tree/nail.1?h=v14.9.25"
+  - "https://git.sdaoden.eu/browse/s-nail.git/tree/make.rc?h=v14.9.25"
+  - "https://packages.debian.org/trixie/s-nail"
+  - "https://mdapi.fedoraproject.org/rawhide/pkg/s-nail"
+  - "https://archlinux.org/packages/core/x86_64/s-nail/"
+  - "https://formulae.brew.sh/formula/s-nail"
+  - "https://github.com/freebsd/freebsd-ports/blob/main/mail/s-nail/Makefile"
+  - "https://github.com/openbsd/ports/blob/master/mail/s-nail/Makefile"
+  - "https://github.com/termux/termux-packages/tree/master/packages"
+  - "https://github.com/forwardemail/forwardemail.net/blob/master/helpers/ensure-default-mailboxes.js"

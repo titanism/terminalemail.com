@@ -1,0 +1,54 @@
+name: Suggest a client or tool
+description: Add a terminal email client or mail tool that is not listed yet.
+title: "Suggest: "
+labels: [suggestion]
+body:
+  - type: input
+    id: name
+    attributes:
+      label: Name
+    validations:
+      required: true
+  - type: input
+    id: website
+    attributes:
+      label: Website
+      placeholder: https://
+    validations:
+      required: true
+  - type: input
+    id: source
+    attributes:
+      label: Source code
+      placeholder: https://github.com/owner/repo
+    validations:
+      required: true
+  - type: checkboxes
+    id: systems
+    attributes:
+      label: Systems it runs on
+      options:
+        - label: Linux
+        - label: macOS
+        - label: Windows (native or WSL)
+        - label: BSD
+        - label: Android (Termux)
+  - type: textarea
+    id: install
+    attributes:
+      label: How to install it
+      description: Package names or commands for each system, with links to the package pages.
+  - type: dropdown
+    id: affiliation
+    attributes:
+      label: Are you connected to this project?
+      options:
+        - "No"
+        - "Yes, I maintain or contribute to it"
+        - "Yes, another connection (explain below)"
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Anything else

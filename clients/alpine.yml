@@ -1,0 +1,96 @@
+name: Alpine
+slug: alpine
+type: client
+interface: tui
+summary: >-
+  Menu-driven terminal email client descended from Pine, with built-in help, setup screens and native Windows builds.
+description: >-
+  Alpine is a full-screen email and news client that shows available commands at the bottom of every screen and
+  is configured through built-in setup menus instead of a hand-written file. It reads IMAP, POP3 and NNTP, keeps
+  local mail in mbox-style folders, sends over SMTP, and includes the Pico editor, S/MIME and XOAUTH2 for Gmail,
+  Outlook and Yahoo. It suits users who prefer menus and on-screen command hints over memorized keybindings.
+  The maintained version is developed by Eduardo Chappa.
+website: https://alpineapp.email/
+repo: https://repo.or.cz/alpine.git
+docs: https://alpineapp.email/alpine/alpine-info/
+license: Apache-2.0
+language: C
+maintained: true
+latest_version: "2.26"
+lineage: "Successor of Pine, continued from the University of Washington Alpine"
+platforms:
+  linux:
+    support: native
+    install:
+      - { via: apt, cmd: "sudo apt install alpine" }
+      - { via: dnf, cmd: "sudo dnf install alpine" }
+  macos:
+    support: native
+    install:
+      - { via: Homebrew, cmd: "brew install alpine" }
+  windows:
+    support: native
+    note: "Official 64-bit and 32-bit Windows builds (PC-Alpine) are published as ZIP files."
+    install:
+      - { via: Official ZIP, cmd: "Download alpine-2.26.zip from https://alpineapp.email/alpine/release/" }
+  bsd:
+    support: native
+    install:
+      - { via: FreeBSD pkg, cmd: "pkg install alpine" }
+      - { via: OpenBSD, cmd: "pkg_add alpine" }
+  android:
+    support: termux
+    install:
+      - { via: Termux, cmd: "pkg install alpine" }
+protocols: { imap: true, pop3: true, smtp: true, jmap: false, maildir: false, mbox: true, notmuch: false }
+features:
+  pgp: "via plugin"
+  smime: true
+  oauth2: true
+  threads: true
+  search: "built-in search and message selection; server-side for IMAP"
+  html: "built-in HTML-to-text rendering"
+  mouse: true
+  multiple_accounts: true
+  offline: false
+  calendar: true
+  contacts: "built-in address book; LDAP lookup"
+  vim_keys: false
+  config: "built-in setup screens, stored in .pinerc"
+pros:
+  - "Command list on every screen and built-in help for each option"
+  - "Official native Windows builds alongside Unix packages"
+  - "Built-in XOAUTH2 for Gmail, Outlook and Yahoo, and built-in S/MIME"
+cons:
+  - "PGP needs external display and sending filters"
+  - "No Maildir, notmuch or JMAP support"
+  - "Last stable release is 2.26; newer work is in alpha builds"
+forward_email: |
+  # Forward Email: IMAP over SSL/TLS (993), SMTP over SSL/TLS (465)
+  # Set these in Setup > Config, or edit ~/.pinerc while Alpine is closed.
+  # Alpine has no password command; it prompts and can save passwords
+  # in its encrypted password file.
+  personal-name=Your Name
+  user-domain=example.com
+  customized-hdrs=From: Your Name <you@example.com>
+  inbox-path={imap.forwardemail.net:993/ssl/user=you@example.com}INBOX
+  folder-collections=ForwardEmail {imap.forwardemail.net:993/ssl/user=you@example.com}[]
+  default-fcc={imap.forwardemail.net:993/ssl/user=you@example.com}Sent Mail
+  postponed-folder={imap.forwardemail.net:993/ssl/user=you@example.com}Drafts
+  smtp-server=smtp.forwardemail.net:465/ssl/user=you@example.com
+forward_email_file: "~/.pinerc"
+sources:
+  - "https://alpineapp.email/"
+  - "https://alpineapp.email/alpine/release/"
+  - "https://alpineapp.email/alpine/alpine-info/"
+  - "https://alpineapp.email/alpine/alpine-info/misc/xoauth2.html"
+  - "https://repo.or.cz/alpine.git"
+  - "https://repo.or.cz/alpine.git/blob/HEAD:/LICENSE"
+  - "https://repo.or.cz/alpine.git/blob/HEAD:/pith/pine.hlp"
+  - "https://formulae.brew.sh/formula/alpine"
+  - "https://sources.debian.org/src/alpine/"
+  - "https://packages.fedoraproject.org/pkgs/alpine/alpine/"
+  - "https://www.freshports.org/mail/alpine/"
+  - "https://github.com/openbsd/ports/tree/master/mail/alpine"
+  - "https://github.com/termux/termux-packages/tree/master/packages/alpine"
+  - "https://github.com/forwardemail/forwardemail.net/blob/master/helpers/ensure-default-mailboxes.js"

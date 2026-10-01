@@ -1,0 +1,110 @@
+name: OfflineIMAP
+slug: offlineimap
+type: tool
+interface: cli
+summary: >-
+  Python program that syncs IMAP mailboxes with local Maildir folders in both directions.
+description: >-
+  OfflineIMAP downloads IMAP folders into local Maildirs and keeps both sides in sync, so a Maildir client can read
+  mail offline. The maintained code base is offlineimap3, the Python 3 port; the original Python 2 repository is no
+  longer developed. Configuration is an INI-style file, and Python helper functions can supply passwords, folder
+  name mapping and filters.
+website: https://www.offlineimap.org/
+repo: https://github.com/OfflineIMAP/offlineimap3
+docs: https://www.offlineimap.org/documentation.html
+license: GPL-2.0-or-later
+language: Python
+maintained: true
+latest_version: "8.0.3"
+lineage: "Python 3 port of the original OfflineIMAP (Python 2, no longer maintained)"
+platforms:
+  linux:
+    support: native
+    install:
+      - { via: apt, cmd: "sudo apt install offlineimap3" }
+      - { via: dnf, cmd: "sudo dnf install offlineimap" }
+      - { via: pacman, cmd: "sudo pacman -S offlineimap" }
+      - { via: pipx, cmd: "pipx install offlineimap" }
+  macos:
+    support: native
+    install:
+      - { via: Homebrew, cmd: "brew install offlineimap" }
+      - { via: pipx, cmd: "pipx install offlineimap" }
+  windows:
+    support: wsl
+    note: "No native Windows package; use WSL."
+    install:
+      - { via: WSL, cmd: "sudo apt install offlineimap3" }
+  bsd:
+    support: native
+    install:
+      - { via: FreeBSD pkg, cmd: "pkg install mail/py-offlineimap" }
+      - { via: OpenBSD, cmd: "pkg_add offlineimap" }
+  android:
+    support: none
+    install: []
+protocols: { imap: true, pop3: false, smtp: false, jmap: false, maildir: true, mbox: false, notmuch: false }
+features:
+  pgp: false
+  smime: false
+  oauth2: true
+  threads: false
+  search: false
+  html: false
+  mouse: false
+  multiple_accounts: true
+  offline: "keeps a full local Maildir copy"
+  calendar: false
+  contacts: false
+  vim_keys: false
+  config: "~/.offlineimaprc or ~/.config/offlineimap/config (INI)"
+pros:
+  - "Built-in XOAUTH2 support for Gmail and similar providers"
+  - "Python hooks (pythonfile) for passwords, folder name mapping and filtering"
+  - "Can sync accounts in parallel and run repeatedly with autorefresh"
+cons:
+  - "Slower than isync on large mailboxes"
+  - "Older guides and some packages still point to the unmaintained Python 2 version"
+  - "Only IMAP and Maildir; no POP3 and no sending"
+forward_email: |
+  [general]
+  accounts = forwardemail
+  pythonfile = ~/.offlineimap.py
+
+  [Account forwardemail]
+  localrepository = forwardemail-local
+  remoterepository = forwardemail-remote
+
+  [Repository forwardemail-local]
+  type = Maildir
+  localfolders = ~/Mail/forwardemail
+
+  [Repository forwardemail-remote]
+  type = IMAP
+  remotehost = imap.forwardemail.net
+  remoteport = 993
+  ssl = yes
+  sslcacertfile = OS-DEFAULT
+  remoteuser = you@example.com
+  remotepasseval = get_pass("forwardemail/you@example.com")
+
+  # ~/.offlineimap.py
+  # import subprocess
+  # def get_pass(name):
+  #     return subprocess.check_output(["pass", "show", name]).decode().splitlines()[0]
+forward_email_file: "~/.offlineimaprc"
+sources:
+  - "https://www.offlineimap.org/"
+  - "https://github.com/OfflineIMAP/offlineimap3"
+  - "https://github.com/OfflineIMAP/offlineimap3/blob/master/README.md"
+  - "https://github.com/OfflineIMAP/offlineimap3/blob/master/offlineimap.conf"
+  - "https://github.com/OfflineIMAP/offlineimap3/blob/master/pyproject.toml"
+  - "https://github.com/OfflineIMAP/offlineimap"
+  - "https://pypi.org/project/offlineimap/"
+  - "https://packages.debian.org/search?keywords=offlineimap3&searchon=names&exact=1"
+  - "https://packages.ubuntu.com/offlineimap3"
+  - "https://mdapi.fedoraproject.org/rawhide/pkg/offlineimap"
+  - "https://archlinux.org/packages/extra/any/offlineimap/"
+  - "https://formulae.brew.sh/formula/offlineimap"
+  - "https://www.freshports.org/mail/py-offlineimap/"
+  - "https://openports.pl/path/mail/offlineimap"

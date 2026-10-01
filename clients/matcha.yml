@@ -1,0 +1,100 @@
+name: Matcha
+slug: matcha
+type: client
+interface: tui
+summary: >-
+  Terminal email client written in Go with the Bubble Tea TUI library, with IMAP, JMAP and POP3 support.
+description: >-
+  Matcha is a full-screen terminal email client by Floatpane. It talks to IMAP, JMAP, POP3 or a local Maildir and
+  sends over SMTP, with multiple accounts, PGP and S/MIME, threaded view, inline images in terminals that support
+  image protocols, and Lua plugins. Accounts and settings live in a JSON file, and a background daemon handles new
+  mail notifications. It suits users who want a modern, mouse-capable client with presets for Gmail, iCloud and
+  Outlook.
+website: https://matcha.email/
+repo: https://github.com/floatpane/matcha
+docs: https://docs.matcha.email/
+license: MIT
+language: Go
+maintained: true
+latest_version: "v1.0.1"
+platforms:
+  linux:
+    support: native
+    install:
+      - { via: Snap, cmd: "sudo snap install matcha" }
+      - { via: Flatpak, cmd: "flatpak install https://matcha.email/matcha.flatpakref" }
+      - { via: Nix, cmd: "nix profile install github:floatpane/matcha" }
+  macos:
+    support: native
+    install:
+      - { via: Homebrew, cmd: "brew install --cask floatpane/matcha/matcha" }
+  windows:
+    support: native
+    install:
+      - { via: winget, cmd: "winget install --id=floatpane.matcha" }
+  bsd:
+    support: source
+    note: "No ports package; build with Go."
+    install:
+      - { via: Go, cmd: "git clone https://github.com/floatpane/matcha && cd matcha && go build ." }
+  android:
+    support: none
+    install: []
+protocols: { imap: true, pop3: true, smtp: true, jmap: true, maildir: true, mbox: false, notmuch: false }
+features:
+  pgp: true
+  smime: true
+  oauth2: true
+  threads: true
+  search: "built-in search and filter"
+  html: "built-in rendering, with inline images in supported terminals"
+  mouse: true
+  multiple_accounts: true
+  offline: "local cache of message lists and bodies"
+  calendar: "shows .ics invites and sends RSVP replies"
+  contacts: "address book built from sent and received mail"
+  vim_keys: true
+  config: "~/.config/matcha/config.json plus in-app settings"
+pros:
+  - "Supports IMAP, JMAP, POP3 and Maildir in one client"
+  - "PGP (including YubiKey) and S/MIME signing and encryption"
+  - "Prebuilt packages for Linux (Snap, Flatpak), macOS (Homebrew tap) and Windows (winget)"
+cons:
+  - "Young project; v1.0 shipped only after a long series of 0.x releases"
+  - "JSON config is less readable to hand-edit than muttrc-style files"
+  - "Binary name clashes with an unrelated tool also called matcha"
+forward_email: |
+  {
+    "accounts": [
+      {
+        "id": "forwardemail",
+        "name": "Your Name",
+        "email": "you@example.com",
+        "service_provider": "custom",
+        "imap_server": "imap.forwardemail.net",
+        "imap_port": 993,
+        "smtp_server": "smtp.forwardemail.net",
+        "smtp_port": 465,
+        "pass_cmd": "pass show forwardemail/you@example.com"
+      }
+    ]
+  }
+forward_email_file: "~/.config/matcha/config.json"
+sources:
+  - "https://matcha.email/"
+  - "https://github.com/floatpane/matcha"
+  - "https://github.com/floatpane/matcha/blob/master/LICENSE"
+  - "https://github.com/floatpane/matcha/releases/tag/v1.0.1"
+  - "https://github.com/floatpane/matcha/blob/master/docs/docs/installation.md"
+  - "https://github.com/floatpane/matcha/blob/master/docs/docs/Configuration.md"
+  - "https://github.com/floatpane/matcha/blob/master/docs/docs/Features/PassCmd.md"
+  - "https://github.com/floatpane/matcha/blob/master/docs/docs/Features/Keybinds.md"
+  - "https://github.com/floatpane/matcha/blob/master/docs/docs/Features/CALENDAR.md"
+  - "https://github.com/floatpane/matcha/blob/master/backend/README.md"
+  - "https://github.com/floatpane/matcha/blob/master/config/config.go"
+  - "https://github.com/floatpane/matcha/blob/master/fetcher/fetcher.go"
+  - "https://github.com/floatpane/matcha/blob/master/sender/sender.go"
+  - "https://github.com/floatpane/homebrew-matcha"
+  - "https://github.com/microsoft/winget-pkgs/tree/master/manifests/f/floatpane/matcha"
+  - "https://snapcraft.io/matcha"
+  - "https://docs.matcha.email/"

@@ -1,0 +1,129 @@
+name: mblaze
+slug: mblaze
+type: client
+interface: cli
+summary: >-
+  Set of small Unix utilities for reading, searching, threading and composing mail stored in Maildir folders.
+description: >-
+  mblaze is a collection of commands such as mlist, mscan, mshow, mthread, mpick and mcom that are combined in shell pipes.
+  It works directly on Maildir folders with no database or cache, and can import and export mbox files; its design is inspired by MH but written from scratch.
+  It has no networking of its own: a sync tool such as mbsync fetches mail and a sendmail-compatible program such as msmtp sends it.
+  It suits users who want to script mail handling with standard Unix tools.
+website: https://github.com/leahneukirchen/mblaze
+repo: https://github.com/leahneukirchen/mblaze
+docs: https://github.com/leahneukirchen/mblaze/blob/master/README
+license: CC0-1.0 AND MIT
+language: C
+maintained: true
+latest_version: "1.4"
+lineage: "Inspired by MH; written from scratch"
+platforms:
+  linux:
+    support: native
+    install:
+      - { via: apt, cmd: "sudo apt install mblaze" }
+      - { via: xbps, cmd: "sudo xbps-install mblaze" }
+      - { via: AUR, cmd: "yay -S mblaze" }
+  macos:
+    support: native
+    note: "No Homebrew formula; available through Nix or by building from source with GNU make."
+    install:
+      - { via: Nix, cmd: "nix profile install nixpkgs#mblaze" }
+  windows:
+    support: wsl
+    note: "No native build; upstream lists Cygwin as tested, and the Debian package works in WSL."
+    install:
+      - { via: WSL, cmd: "sudo apt install mblaze" }
+  bsd:
+    support: native
+    install:
+      - { via: FreeBSD pkg, cmd: "pkg install mblaze" }
+      - { via: OpenBSD, cmd: "pkg_add mblaze" }
+  android:
+    support: none
+    note: "No Termux package."
+    install: []
+protocols: { imap: external, pop3: external, smtp: external, jmap: false, maildir: true, mbox: false, notmuch: false }
+features:
+  pgp: "via contrib scripts"
+  smime: false
+  oauth2: false
+  threads: true
+  search: "mpick and magrep filter messages by headers, flags and content"
+  html: "via a filter command in ~/.mblaze/filter used by mshow"
+  mouse: false
+  multiple_accounts: "via separate Maildirs and profile settings"
+  offline: "full; works only on local Maildir"
+  calendar: false
+  contacts: false
+  vim_keys: false
+  config: "~/.mblaze/profile (header-style key: value lines)"
+pros:
+  - "Each command does one job, so mail handling is easy to combine in pipes and scripts."
+  - "Works directly on Maildir with no index or database to maintain."
+  - "Small C programs with no external library dependencies."
+cons:
+  - "No built-in IMAP, POP3 or SMTP; needs mbsync and msmtp or similar tools."
+  - "Command-line only, with no full-screen interface."
+  - "OpenPGP and S/MIME handling relies on unsupported contrib scripts."
+forward_email: |
+  # 1) ~/.mbsyncrc: sync to ~/Mail/forwardemail (isync 1.5+ syntax)
+  IMAPAccount forwardemail
+  Host imap.forwardemail.net
+  Port 993
+  User you@example.com
+  PassCmd "pass show email/forwardemail"
+  TLSType IMAPS
+
+  IMAPStore forwardemail-remote
+  Account forwardemail
+
+  MaildirStore forwardemail-local
+  SubFolders Verbatim
+  Path ~/Mail/forwardemail/
+  Inbox ~/Mail/forwardemail/INBOX
+
+  Channel forwardemail
+  Far :forwardemail-remote:
+  Near :forwardemail-local:
+  Patterns *
+  Create Both
+  SyncState *
+
+  # 2) ~/.config/msmtp/config (chmod 600)
+  account forwardemail
+  host smtp.forwardemail.net
+  port 465
+  tls on
+  tls_starttls off
+  auth on
+  user you@example.com
+  passwordeval "pass show email/forwardemail"
+  from you@example.com
+  account default : forwardemail
+
+  # 3) ~/.mblaze/profile
+  Local-Mailbox: Your Name <you@example.com>
+  Maildir: ~/Mail/forwardemail
+  Outbox: ~/Mail/forwardemail/Sent Mail
+  Sendmail: msmtp
+
+  # Usage: mbsync forwardemail; mlist ~/Mail/forwardemail/INBOX | mthread | mscan
+forward_email_file: "~/.mbsyncrc, ~/.config/msmtp/config and ~/.mblaze/profile"
+sources:
+  - "https://github.com/leahneukirchen/mblaze"
+  - "https://github.com/leahneukirchen/mblaze/blob/master/README"
+  - "https://github.com/leahneukirchen/mblaze/blob/master/COPYING"
+  - "https://github.com/leahneukirchen/mblaze/blob/master/INSTALL.md"
+  - "https://github.com/leahneukirchen/mblaze/blob/master/man/mblaze-profile.5"
+  - "https://github.com/leahneukirchen/mblaze/tree/master/contrib"
+  - "https://leahneukirchen.org/releases/"
+  - "https://packages.debian.org/trixie/mblaze"
+  - "https://github.com/void-linux/void-packages/blob/master/srcpkgs/mblaze/template"
+  - "https://aur.archlinux.org/packages/mblaze"
+  - "https://github.com/NixOS/nixpkgs/blob/master/pkgs/by-name/mb/mblaze/package.nix"
+  - "https://github.com/freebsd/freebsd-ports/blob/main/mail/mblaze/Makefile"
+  - "https://github.com/openbsd/ports/blob/master/mail/mblaze/Makefile"
+  - "https://formulae.brew.sh/api/formula.json"
+  - "https://sourceforge.net/p/isync/isync/ci/master/tree/src/mbsync.1.in"
+  - "https://git.marlam.de/gitweb/?p=msmtp.git;a=blob;f=doc/msmtp.texi"

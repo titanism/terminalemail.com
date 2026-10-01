@@ -1,0 +1,90 @@
+name: nmail
+slug: nmail
+type: client
+interface: tui
+summary: >-
+  Terminal email client for Linux and macOS with an Alpine-like interface and built-in IMAP and SMTP.
+description: >-
+  nmail is an ncurses email client written in C++ that connects to one IMAP and SMTP account and keeps a local
+  SQLite cache, optionally encrypted. It has setup wizards for Gmail, iCloud and Outlook (including OAuth 2.0),
+  converts HTML mail to text, composes HTML mail from Markdown and can queue mail while offline. It suits users who
+  want an Alpine-style client with no separate sync or send tools. Multiple accounts need separate nmail instances.
+website: https://github.com/d99kris/nmail
+repo: https://github.com/d99kris/nmail
+docs: https://github.com/d99kris/nmail#readme
+license: MIT
+language: C++
+maintained: true
+latest_version: "v5.16.4"
+platforms:
+  linux:
+    support: native
+    install:
+      - { via: Guix, cmd: "guix install nmail" }
+      - { via: Install script, cmd: "curl -fsSL https://raw.githubusercontent.com/d99kris/nmail/master/utils/install.sh | bash" }
+  macos:
+    support: native
+    install:
+      - { via: Homebrew, cmd: "brew install nmail" }
+      - { via: MacPorts, cmd: "sudo port install nmail" }
+  windows:
+    support: none
+    note: "Upstream supports Linux and macOS only."
+    install: []
+  bsd:
+    support: none
+    note: "Not packaged or documented for the BSDs."
+    install: []
+  android:
+    support: none
+    install: []
+protocols: { imap: true, pop3: false, smtp: true, jmap: false, maildir: false, mbox: false, notmuch: false }
+features:
+  pgp: false
+  smime: false
+  oauth2: true
+  threads: false
+  search: "local cache index and server search"
+  html: "converted to text, or opened in an external browser"
+  mouse: false
+  multiple_accounts: false
+  offline: "local SQLite cache; offline mode and send queue"
+  calendar: false
+  contacts: "address book built from messages"
+  vim_keys: false
+  config: "~/.config/nmail/main.conf key=value file"
+pros:
+  - "Built-in IMAP and SMTP with setup wizards for Gmail, iCloud and Outlook"
+  - "Local cache, address book and outgoing queue can be encrypted"
+  - "Compose HTML mail using Markdown"
+cons:
+  - "One account per running instance"
+  - "No threaded view and no PGP or S/MIME"
+  - "Linux and macOS only; no Debian or Fedora package"
+forward_email: |
+  address=you@example.com
+  name=Your Name
+  user=you@example.com
+  imap_host=imap.forwardemail.net
+  imap_port=993
+  smtp_host=smtp.forwardemail.net
+  smtp_port=465
+  # Folder names must match the folders on the server
+  inbox=INBOX
+  drafts=Drafts
+  sent=Sent Mail
+  trash=Trash
+  spam=Spam
+  # Prompt for the alias' generated password at start instead of storing it
+  save_pass=0
+forward_email_file: "~/.config/nmail/main.conf"
+sources:
+  - "https://github.com/d99kris/nmail"
+  - "https://github.com/d99kris/nmail/blob/master/README.md"
+  - "https://github.com/d99kris/nmail/blob/master/LICENSE"
+  - "https://github.com/d99kris/nmail/blob/master/src/imap.cpp"
+  - "https://github.com/d99kris/nmail/blob/master/src/smtp.cpp"
+  - "https://github.com/d99kris/nmail/releases/tag/v5.16.4"
+  - "https://formulae.brew.sh/formula/nmail"
+  - "https://ports.macports.org/port/nmail/"
+  - "https://aur.archlinux.org/packages/nmail"

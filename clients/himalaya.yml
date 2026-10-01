@@ -1,0 +1,103 @@
+name: Himalaya
+slug: himalaya
+type: client
+interface: cli
+summary: >-
+  Command-line email client written in Rust that lists, reads, sends and moves mail through shell commands with JSON output.
+description: >-
+  Himalaya is a stateless command-line email client: each action, such as listing envelopes or sending a message,
+  is a separate shell command, so it fits scripts, editor plugins and other tools. It talks to IMAP, SMTP, JMAP,
+  the Gmail API and Microsoft Graph, and reads Maildir and m2dir folders. Version 2 moved composing,
+  PGP and OAuth token handling into separate Pimalaya tools (mml and ortie); a full-screen interface,
+  himalaya-tui, is developed separately and is still pre-release.
+website: https://pimalaya.org/
+repo: https://github.com/pimalaya/himalaya
+docs: https://github.com/pimalaya/himalaya#readme
+license: MIT OR Apache-2.0
+language: Rust
+maintained: true
+latest_version: "2.1.0"
+platforms:
+  linux:
+    support: native
+    install:
+      - { via: pacman, cmd: "sudo pacman -S himalaya" }
+      - { via: Nix, cmd: "nix profile install github:pimalaya/himalaya" }
+      - { via: cargo, cmd: "cargo install --locked --git https://github.com/pimalaya/himalaya.git" }
+      - { via: Install script, cmd: "curl -sSL https://raw.githubusercontent.com/pimalaya/himalaya/master/install.sh | PREFIX=~/.local sh" }
+  macos:
+    support: native
+    install:
+      - { via: Homebrew, cmd: "brew install himalaya" }
+      - { via: cargo, cmd: "cargo install --locked --git https://github.com/pimalaya/himalaya.git" }
+  windows:
+    support: native
+    note: "Prebuilt x86_64 Windows binary on GitHub releases."
+    install:
+      - { via: Scoop, cmd: "scoop install himalaya" }
+  bsd:
+    support: source
+    note: "No BSD package or prebuilt binary."
+    install:
+      - { via: cargo, cmd: "cargo install --locked --git https://github.com/pimalaya/himalaya.git" }
+  android:
+    support: none
+    install: []
+protocols: { imap: true, pop3: false, smtp: true, jmap: true, maildir: true, mbox: false, notmuch: false }
+features:
+  pgp: false
+  smime: false
+  oauth2: "via script"
+  threads: "through the IMAP, JMAP and Gmail subcommands"
+  search: "built-in query syntax across backends; server-side for IMAP and JMAP"
+  html: false
+  mouse: false
+  multiple_accounts: true
+  offline: "with the Maildir backend and a sync tool such as mbsync"
+  calendar: false
+  contacts: false
+  vim_keys: false
+  config: "TOML file; interactive setup wizard"
+pros:
+  - "Every action is a shell command with optional JSON output, suited to scripts"
+  - "Native Windows binary through Scoop and GitHub releases"
+  - "Also supports JMAP, the Gmail API and Microsoft Graph"
+cons:
+  - "No interactive interface; himalaya-tui is still pre-release"
+  - "Composing rich MIME or PGP messages needs the separate mml tool"
+  - "Version 2 dropped the notmuch and sendmail backends"
+forward_email: |
+  # Forward Email: IMAP over SSL/TLS (993), SMTP over SSL/TLS (465)
+  [accounts.forwardemail]
+  default = true
+  email = "you@example.com"
+  display-name = "Your Name"
+
+  imap.server = "imaps://imap.forwardemail.net:993"
+  imap.sasl.plain.username = "you@example.com"
+  imap.sasl.plain.password.command = "pass show email/forwardemail"
+
+  smtp.server = "smtps://smtp.forwardemail.net:465"
+  smtp.sasl.plain.username = "you@example.com"
+  smtp.sasl.plain.password.command = "pass show email/forwardemail"
+
+  # IMAP reports only the inbox role, so map the other folders by name
+  mailbox.alias.sent = "Sent Mail"
+  mailbox.alias.drafts = "Drafts"
+  mailbox.alias.trash = "Trash"
+forward_email_file: "~/.config/himalaya/config.toml"
+sources:
+  - "https://pimalaya.org/"
+  - "https://github.com/pimalaya/himalaya"
+  - "https://github.com/pimalaya/himalaya/blob/master/README.md"
+  - "https://github.com/pimalaya/himalaya/blob/master/MIGRATION.md"
+  - "https://github.com/pimalaya/himalaya/blob/master/CHANGELOG.md"
+  - "https://github.com/pimalaya/himalaya/blob/v2.1.0/config.sample.toml"
+  - "https://github.com/pimalaya/himalaya/blob/v2.1.0/Cargo.toml"
+  - "https://github.com/pimalaya/himalaya/blob/master/install.sh"
+  - "https://github.com/pimalaya/himalaya-tui"
+  - "https://crates.io/crates/himalaya"
+  - "https://formulae.brew.sh/formula/himalaya"
+  - "https://archlinux.org/packages/extra/x86_64/himalaya/"
+  - "https://github.com/ScoopInstaller/Main/blob/master/bucket/himalaya.json"
+  - "https://github.com/forwardemail/forwardemail.net/blob/master/helpers/ensure-default-mailboxes.js"

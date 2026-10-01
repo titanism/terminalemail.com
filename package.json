@@ -1,0 +1,25 @@
+{
+  "name": "terminalemail.com",
+  "private": true,
+  "description": "A curated list of terminal email clients by operating system. Built from YAML and Markdown, published with GitHub Pages.",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "validate": "node scripts/validate.js",
+    "build": "node scripts/build.js",
+    "serve": "npm run build && node scripts/serve.js",
+    "test:unit": "node --test test/*.test.js",
+    "test": "npm run validate && npm run build && npm run check:links && npm run test:unit",
+    "icons": "node scripts/icons.js",
+    "check:links": "node scripts/check-links.js"
+  },
+  "dependencies": {
+    "@resvg/resvg-js": "2.6.2",
+    "esbuild": "0.25.10",
+    "marked": "15.0.12",
+    "upng-js": "2.1.0",
+    "yaml": "2.9.1"
+  }
+}

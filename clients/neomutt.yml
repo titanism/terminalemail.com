@@ -1,0 +1,101 @@
+name: NeoMutt
+slug: neomutt
+type: client
+interface: tui
+summary: >-
+  Full-screen terminal mail reader forked from Mutt, with notmuch, NNTP, Lua scripting and a sidebar built in.
+description: >-
+  NeoMutt is a text-mode email client that started as a collection of Mutt patches and is now a separate project.
+  It reads and sends mail over IMAP, POP3 and SMTP, opens local Maildir, mbox and MH folders, and adds notmuch
+  and NNTP (Usenet) support that Mutt does not have. It suits users who want the Mutt workflow and muttrc
+  configuration with more features merged in and a faster release pace.
+website: https://neomutt.org/
+repo: https://github.com/neomutt/neomutt
+docs: https://neomutt.org/guide/
+license: GPL-2.0-or-later
+language: C
+maintained: true
+latest_version: "20260616"
+lineage: "Fork of Mutt"
+platforms:
+  linux:
+    support: native
+    install:
+      - { via: apt, cmd: "sudo apt install neomutt" }
+      - { via: dnf, cmd: "sudo dnf install neomutt" }
+      - { via: pacman, cmd: "sudo pacman -S neomutt" }
+  macos:
+    support: native
+    install:
+      - { via: Homebrew, cmd: "brew install neomutt" }
+  windows:
+    support: wsl
+    note: "No native Windows build; runs in WSL, and Cygwin and MSYS2 also package it."
+    install:
+      - { via: WSL, cmd: "sudo apt install neomutt" }
+      - { via: MSYS2, cmd: "pacman -S neomutt" }
+  bsd:
+    support: native
+    install:
+      - { via: FreeBSD pkg, cmd: "pkg install neomutt" }
+      - { via: OpenBSD, cmd: "pkg_add neomutt" }
+  android:
+    support: termux
+    install:
+      - { via: Termux, cmd: "pkg install neomutt" }
+protocols: { imap: true, pop3: true, smtp: true, jmap: false, maildir: true, mbox: true, notmuch: true }
+features:
+  pgp: true
+  smime: true
+  oauth2: "via script"
+  threads: true
+  search: "built-in patterns; notmuch for full-text"
+  html: "via mailcap and an external viewer such as w3m or lynx"
+  mouse: false
+  multiple_accounts: true
+  offline: "with isync or OfflineIMAP; IMAP header and body cache"
+  calendar: false
+  contacts: "via query_command with abook or khard"
+  vim_keys: true
+  config: "neomuttrc text file"
+pros:
+  - "Built-in notmuch support for tag-based virtual mailboxes and full-text search"
+  - "Reads Usenet over NNTP and supports Lua scripting"
+  - "Reads most existing muttrc files with few or no changes"
+cons:
+  - "Configuration is a text file with hundreds of options and no setup wizard"
+  - "HTML mail needs an external viewer set up in mailcap"
+  - "OAuth2 needs an external token script such as mutt_oauth2.py"
+forward_email: |
+  # Forward Email: IMAP over SSL/TLS (993), SMTP over SSL/TLS (465)
+  set real_name = "Your Name"
+  set from = "you@example.com"
+
+  set imap_user = "you@example.com"
+  set imap_pass = "`pass show email/forwardemail`"
+  set folder = "imaps://imap.forwardemail.net:993"
+  set spool_file = "+INBOX"
+  set record = "+Sent Mail"
+  set postponed = "+Drafts"
+  set trash = "+Trash"
+
+  set smtp_url = "smtps://smtp.forwardemail.net:465"
+  set smtp_user = "you@example.com"
+  set smtp_pass = "`pass show email/forwardemail`"
+  set ssl_force_tls = yes
+forward_email_file: "~/.config/neomutt/neomuttrc"
+sources:
+  - "https://neomutt.org/"
+  - "https://neomutt.org/guide/"
+  - "https://github.com/neomutt/neomutt"
+  - "https://github.com/neomutt/neomutt/blob/main/LICENSE.md"
+  - "https://formulae.brew.sh/formula/neomutt"
+  - "https://sources.debian.org/src/neomutt/"
+  - "https://packages.fedoraproject.org/pkgs/neomutt/neomutt/"
+  - "https://archlinux.org/packages/extra/x86_64/neomutt/"
+  - "https://www.freshports.org/mail/neomutt/"
+  - "https://github.com/openbsd/ports/tree/master/mail/neomutt"
+  - "https://github.com/termux/termux-packages/tree/master/packages/neomutt"
+  - "https://cygwin.com/packages/summary/neomutt.html"
+  - "https://packages.msys2.org/packages/neomutt"
+  - "https://github.com/forwardemail/forwardemail.net/blob/master/helpers/ensure-default-mailboxes.js"

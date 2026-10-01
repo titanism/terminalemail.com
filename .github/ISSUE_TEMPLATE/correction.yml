@@ -1,0 +1,26 @@
+name: Report a mistake
+description: A fact, install command or config is wrong or out of date.
+title: "Correction: "
+labels: [correction]
+body:
+  - type: input
+    id: page
+    attributes:
+      label: Page or file
+      placeholder: https://terminalemail.com/clients/neomutt/ or clients/neomutt.yml
+    validations:
+      required: true
+  - type: textarea
+    id: wrong
+    attributes:
+      label: What is wrong
+      description: Which field, and what it should say instead.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Source
+      description: A link to the project's own website, repository, documentation or package page.
+    validations:
+      required: true

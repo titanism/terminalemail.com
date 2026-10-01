@@ -1,0 +1,101 @@
+name: Mutt
+slug: mutt
+type: client
+interface: tui
+summary: >-
+  Long-running text-mode email client with IMAP, POP3 and SMTP support, configured through a muttrc file.
+description: >-
+  Mutt is a full-screen terminal mail user agent that reads local Maildir, mbox and MH folders and remote
+  IMAP and POP3 mailboxes, and can send through its built-in SMTP client or a local sendmail. It supports
+  PGP/MIME, S/MIME, Autocrypt, threading and a sidebar. It suits users who want a stable, conservative
+  client; it has no notmuch, NNTP or Lua support, which NeoMutt adds.
+website: http://www.mutt.org/
+repo: https://gitlab.com/muttmua/mutt
+docs: http://www.mutt.org/doc/manual/
+license: GPL-2.0-or-later
+language: C
+maintained: true
+latest_version: "2.4.2"
+platforms:
+  linux:
+    support: native
+    install:
+      - { via: apt, cmd: "sudo apt install mutt" }
+      - { via: dnf, cmd: "sudo dnf install mutt" }
+      - { via: pacman, cmd: "sudo pacman -S mutt" }
+  macos:
+    support: native
+    install:
+      - { via: Homebrew, cmd: "brew install mutt" }
+  windows:
+    support: wsl
+    note: "No native Windows build; runs in WSL, and Cygwin and MSYS2 also package it."
+    install:
+      - { via: WSL, cmd: "sudo apt install mutt" }
+      - { via: MSYS2, cmd: "pacman -S mutt" }
+  bsd:
+    support: native
+    install:
+      - { via: FreeBSD pkg, cmd: "pkg install mutt" }
+      - { via: OpenBSD, cmd: "pkg_add mutt" }
+  android:
+    support: termux
+    install:
+      - { via: Termux, cmd: "pkg install mutt" }
+protocols: { imap: true, pop3: true, smtp: true, jmap: false, maildir: true, mbox: true, notmuch: false }
+features:
+  pgp: true
+  smime: true
+  oauth2: "via script"
+  threads: true
+  search: "built-in patterns; server-side IMAP search"
+  html: "via mailcap and an external viewer such as w3m or lynx"
+  mouse: false
+  multiple_accounts: true
+  offline: "with isync or OfflineIMAP; IMAP header and body cache"
+  calendar: false
+  contacts: "via query_command with abook or khard"
+  vim_keys: true
+  config: "muttrc text file"
+pros:
+  - "Packaged by major Linux distributions, Homebrew, FreeBSD, OpenBSD and Termux"
+  - "Conservative releases that rarely break existing muttrc files"
+  - "Built-in PGP/MIME, S/MIME and Autocrypt"
+cons:
+  - "No notmuch, NNTP or scripting support (NeoMutt has these)"
+  - "Configuration is a text file with hundreds of options and no setup wizard"
+  - "HTML mail needs an external viewer set up in mailcap"
+forward_email: |
+  # Forward Email: IMAP over SSL/TLS (993), SMTP over SSL/TLS (465)
+  set realname = "Your Name"
+  set from = "you@example.com"
+
+  set imap_user = "you@example.com"
+  set imap_pass = "`pass show email/forwardemail`"
+  set folder = "imaps://imap.forwardemail.net:993/"
+  set spoolfile = "+INBOX"
+  set record = "+Sent Mail"
+  set postponed = "+Drafts"
+  set trash = "+Trash"
+
+  # The @ in the username is URL-encoded as %40
+  set smtp_url = "smtps://you%40example.com@smtp.forwardemail.net:465/"
+  set smtp_pass = "`pass show email/forwardemail`"
+  set ssl_force_tls = yes
+forward_email_file: "~/.muttrc"
+sources:
+  - "http://www.mutt.org/"
+  - "http://www.mutt.org/doc/manual/"
+  - "https://gitlab.com/muttmua/mutt"
+  - "https://gitlab.com/muttmua/mutt/-/blob/master/COPYRIGHT"
+  - "https://gitlab.com/muttmua/mutt/-/blob/master/UPDATING"
+  - "https://formulae.brew.sh/formula/mutt"
+  - "https://sources.debian.org/src/mutt/"
+  - "https://packages.fedoraproject.org/pkgs/mutt/mutt/"
+  - "https://archlinux.org/packages/extra/x86_64/mutt/"
+  - "https://www.freshports.org/mail/mutt/"
+  - "https://github.com/openbsd/ports/tree/master/mail/mutt"
+  - "https://github.com/termux/termux-packages/tree/master/packages/mutt"
+  - "https://cygwin.com/packages/summary/mutt.html"
+  - "https://packages.msys2.org/packages/mutt"
+  - "https://github.com/forwardemail/forwardemail.net/blob/master/helpers/ensure-default-mailboxes.js"

@@ -1,0 +1,98 @@
+name: Cone
+slug: cone
+type: client
+interface: tui
+summary: >-
+  Full-screen console mail client and newsreader from the Courier mail server project.
+description: >-
+  Cone (COnsole Newsreader And Emailer) is a curses mail client for IMAP, POP3, local mbox and Maildir folders, and Usenet newsgroups.
+  It has a built-in editor with spell checking, address books that can live in an IMAP folder or LDAP, and OpenPGP signing and encryption through GnuPG.
+  It sends through an SMTP server with optional SSL and authentication, or through the local sendmail command.
+  It shares code with the Courier mail server, and most Linux users build it from source with the RPM or DEB scripts upstream provides.
+website: https://www.courier-mta.org/cone/
+repo: https://github.com/svarshavchik/courier
+docs: https://www.courier-mta.org/cone/
+license: GPL-3.0-only
+language: C++
+maintained: true
+latest_version: "2.5"
+lineage: "Part of the Courier mail server project; built on the LibMAIL C++ library"
+platforms:
+  linux:
+    support: source
+    note: "No distribution packages in Debian, Fedora or Arch; upstream documents building RPM packages with rpmbuild and DEB packages with courier-debuild."
+    install:
+      - { via: rpmbuild, cmd: "rpmbuild -ta cone-2.5.tar.bz2" }
+      - { via: courier-debuild, cmd: "./courier-debuild -us -uc" }
+  macos:
+    support: none
+    note: "No Homebrew formula and no documented macOS build."
+    install: []
+  windows:
+    support: wsl
+    note: "No native build; build it from source inside WSL."
+    install: []
+  bsd:
+    support: native
+    install:
+      - { via: FreeBSD pkg, cmd: "pkg install cone" }
+  android:
+    support: none
+    note: "No Termux package."
+    install: []
+protocols: { imap: true, pop3: true, smtp: true, jmap: false, maildir: true, mbox: true, notmuch: false }
+features:
+  pgp: true
+  smime: false
+  oauth2: false
+  threads: true
+  search: "built-in folder search; server-side on IMAP"
+  html: "built-in HTML renderer"
+  mouse: false
+  multiple_accounts: true
+  offline: false
+  calendar: false
+  contacts: "built-in address books, stored locally, in an IMAP folder, or on LDAP"
+  vim_keys: false
+  config: "interactive setup screens; settings saved under ~/.cone"
+pros:
+  - "Handles IMAP, POP3, local mbox and Maildir folders, and newsgroups in one folder tree."
+  - "Built-in OpenPGP signing and encryption with per-account keys."
+  - "Optional master password encrypts saved server passwords."
+cons:
+  - "Not packaged by Debian, Fedora, Arch or Homebrew; usually built from source."
+  - "No offline mode for IMAP accounts and no OAuth2."
+  - "No S/MIME support."
+forward_email: |
+  # Cone is configured from its menus; settings are saved under ~/.cone.
+  # IMAP account: Main menu > N (New account) > I (IMAP account)
+  #   Server: imap.forwardemail.net   (port 993 is the default with encryption on)
+  #   Login: you@example.com
+  #   [x] Use an encrypted connection
+  #   Enter the alias' generated password when prompted.
+  # (POP3 instead: N > P (POP3 account), Server: pop3.forwardemail.net, encrypted connection on (port 995))
+  #
+  # Outgoing mail: Main menu > S (Setup)
+  #   Outgoing SMTP Server: smtp.forwardemail.net
+  #   SMTP userid (optional): you@example.com
+  #   [ ] Send mail via main acct (if available)
+  #   [x] Use SMTP tunneled over SSL      (uses port 465)
+  #
+  # Optional: Main menu > P (Master password) to encrypt the saved passwords.
+forward_email_file: "~/.cone (written by the setup screens)"
+sources:
+  - "https://www.courier-mta.org/cone/"
+  - "https://www.courier-mta.org/cone/INSTALL.html"
+  - "https://github.com/svarshavchik/courier/tree/master/cone"
+  - "https://github.com/svarshavchik/courier/blob/master/cone/ChangeLog"
+  - "https://github.com/svarshavchik/courier/blob/master/cone/cone.spec.in"
+  - "https://github.com/svarshavchik/courier/blob/master/cone/cone/configscreen.C"
+  - "https://github.com/svarshavchik/courier/blob/master/cone/cone/mainmenu.C"
+  - "https://github.com/svarshavchik/courier/blob/master/cone/cone/cone.C"
+  - "https://github.com/svarshavchik/courier/blob/master/cone/cone/sgml/mail-open.sgml"
+  - "https://github.com/svarshavchik/courier-libs/blob/master/common/COPYING"
+  - "https://sourceforge.net/projects/courier/files/cone/2.5/"
+  - "https://github.com/freebsd/freebsd-ports/blob/main/mail/cone/Makefile"
+  - "https://packages.debian.org/sid/cone"
+  - "https://aur.archlinux.org/packages/cone"
+  - "https://formulae.brew.sh/api/formula.json"

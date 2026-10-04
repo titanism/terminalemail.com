@@ -30,7 +30,7 @@ npm test          # validate data, build, check links, run tests
 npm run serve     # build and preview at http://localhost:8080
 ```
 
-The site builds into `_site/` and is published with GitHub Pages by [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml). [`lighthouse.yml`](.github/workflows/lighthouse.yml) requires a score of 100 in every Lighthouse category.
+The site builds into `_site/` and is published with GitHub Pages by [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml). [`lighthouse.yml`](.github/workflows/lighthouse.yml) requires a score of 100 in every Lighthouse category. Scores vary a little between runs, so a page below 100 is run twice more and passes only if most of its runs score 100.
 
 | Path | What it is |
 | --- | --- |

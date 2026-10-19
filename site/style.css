@@ -5,10 +5,13 @@
 @font-face { font-family: "Plex Mono"; src: url("fonts/ibm-plex-mono-latin-400-normal.woff2") format("woff2"); font-weight: 400; font-display: swap; }
 @font-face { font-family: "Plex Mono"; src: url("fonts/ibm-plex-mono-latin-600-normal.woff2") format("woff2"); font-weight: 600 700; font-display: swap; }
 @font-face { font-family: "VT323"; src: url("fonts/vt323-latin-400-normal.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+/* Until VT323 loads, headings use a local monospace font scaled to VT323's size (glyphs 0.4em wide,
+   ascent 0.8em, descent 0.2em), so headings keep their line breaks and the page does not shift. */
+@font-face { font-family: "VT323 Fallback"; src: local("Menlo"), local("DejaVu Sans Mono"), local("Liberation Mono"), local("Roboto Mono"), local("Droid Sans Mono"), local("Courier New"); size-adjust: 66.67%; ascent-override: 120%; descent-override: 30%; line-gap-override: 0%; }
 
 :root {
   --mono: "Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, "DejaVu Sans Mono", monospace;
-  --display: "VT323", "Plex Mono", ui-monospace, monospace;
+  --display: "VT323", "VT323 Fallback", "Plex Mono", ui-monospace, monospace;
   /* greenbar paper */
   --bg: #fbfbf4;
   --surface: #ffffff;
@@ -352,6 +355,12 @@ html:not(.js) .install-panel h3.sr { position: static !important; width: auto; h
 .faq summary::before { content: "[+] " / ""; color: var(--accent); }
 .faq details[open] summary::before { content: "[-] " / ""; }
 .faq .answer { padding: 0 0 14px 4ch; max-width: 76ch; }
+.faq summary h3 { display: inline; margin: 0; font: inherit; color: inherit; text-shadow: none; letter-spacing: normal; }
+.qa h2 { margin-top: 1.6em; }
+.qa p, .qa ul { max-width: 76ch; }
+.glossary dt { margin-top: 18px; font-weight: 600; }
+.glossary dd { margin: 4px 0 0; max-width: 76ch; }
+.pick { padding: 4px 0 8px; border-bottom: 1px solid var(--line); }
 
 /* ---------- prose (Markdown pages) ---------- */
 
@@ -359,7 +368,7 @@ html:not(.js) .install-panel h3.sr { position: static !important; width: auto; h
 .prose h2 { font-size: 2rem; }
 .prose table { border-collapse: collapse; font-size: 0.9rem; }
 .prose th, .prose td { padding: 6px 10px; border-bottom: 1px solid var(--line); text-align: start; }
-.table-wrap { overflow-x: auto; }
+.table-wrap { overflow-x: auto; margin-bottom: 1em; }
 
 /* ---------- search page ---------- */
 
@@ -407,6 +416,7 @@ html:not(.js) .install-panel h3.sr { position: static !important; width: auto; h
 @media (min-width: 420px) { .share-grid { grid-template-columns: repeat(3, 1fr); } }
 .share-to { display: flex; align-items: center; justify-content: center; min-height: 42px; padding: 6px; border: 1px solid var(--line-strong); border-radius: 4px; color: var(--ink); text-decoration: none; font-size: 0.86rem; }
 .share-to:hover { border-color: var(--accent); color: var(--accent); }
+button.share-to { width: 100%; background: none; font: inherit; font-size: 0.86rem; cursor: pointer; }
 .share-mastodon { margin-top: 12px; }
 .share-mastodon label { display: block; font-size: 0.85rem; margin-bottom: 6px; }
 .share-mastodon div { display: flex; gap: 8px; }

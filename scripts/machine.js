@@ -7,6 +7,7 @@ const { execFileSync } = require('node:child_process');
 const ctx = require('./context');
 const lib = require('./lib');
 const P = require('./pages');
+const G = require('./guides');
 const { licenseText, supportSentence, joinList, osName, cellText } = require('./templates');
 
 const { site, SITE_URL, REPO, NOW, entries, clients, tools, featured, systems, comparisons, alternatives, features, pages, DOCS, FE_SETTINGS } = ctx;
@@ -154,7 +155,7 @@ ${a.list.slice(0, 10).map((c, i) => `${i + 1}. ${mdLink(c.name, `${c.path}index.
 
 const featureMd = (f) => `# ${f.h1}
 
-${f.intro}
+${f.intro}${f.about ? `\n\n${f.about}` : ''}
 
 ${listMd(f.list)}
 `;
@@ -187,6 +188,10 @@ function llmsTxt() {
 > ${site.tagline} ${clients.length} terminal email clients and ${tools.length} mail tools, each with verified install commands for Linux, macOS, Windows, BSD and Android, protocol and feature support, pros and cons, a working Forward Email config and links to the sources the facts came from. Made by Forward Email, whose terminal app (\`forwardemail\`) is featured and disclosed as such.
 
 Every page has a Markdown version at the same URL plus \`index.md\`. All data is at ${abs('/api/clients.json')} and in one text file at ${abs('/llms-full.txt')}. Content is CC BY-SA 4.0.
+
+## Start here
+
+${G.GUIDES.map((g) => `- ${mdLink(g.title, `${g.path}index.md`)}: ${g.description}`).join('\n')}
 
 ## Featured
 
@@ -224,7 +229,7 @@ ${pages.map((p) => `- ${mdLink(p.title, `${p.path}index.md`)}: ${p.description}`
 `;
 }
 
-const llmsFullTxt = () => [llmsTxt(), setupMd(), ...entries.map(entryMd), ...systems.map(systemMd), ...pages.map((p) => p.body)].join('\n\n---\n\n');
+const llmsFullTxt = () => [llmsTxt(), ...G.GUIDES.map((g) => g.md()), setupMd(), ...entries.map(entryMd), ...systems.map(systemMd), ...pages.map((p) => p.body)].join('\n\n---\n\n');
 
 // ---------- JSON ----------
 
@@ -267,7 +272,7 @@ function searchJson() {
   for (const f of features) out.push({ t: 'f', n: f.h1, u: `${ctx.BASE}${f.path}`, d: f.intro, k: f.slug.replace(/-/g, ' ') });
   for (const a of alternatives) out.push({ t: 'a', n: `${a.entry.name} alternatives`, u: `${ctx.BASE}${a.path}`, d: `${a.list.length} other clients, most similar first`, k: `${a.entry.slug} instead replace` });
   for (const c of comparisons) out.push({ t: 'c', n: `${c.a.name} vs ${c.b.name}`, u: `${ctx.BASE}${c.path}`, d: 'Side by side', k: `${c.a.slug} ${c.b.slug} versus compare` });
-  for (const [n, p, d] of [['Forward Email settings for terminal clients', '/setup/', 'IMAP, POP3 and SMTP settings and configs'], ['All clients', '/clients/', 'Every terminal email client'], ['Mail tools', '/tools/', 'Sync, send and index mail'], ...pages.map((x) => [x.title, x.path, x.description])]) out.push({ t: 'p', n, u: `${ctx.BASE}${p}`, d });
+  for (const [n, p, d] of [['Forward Email settings for terminal clients', '/setup/', 'IMAP, POP3 and SMTP settings and configs'], ['All clients', '/clients/', 'Every terminal email client'], ['Mail tools', '/tools/', 'Sync, send and index mail'], ...G.GUIDES.map((g) => [g.title, g.path, g.description]), ...pages.map((x) => [x.title, x.path, x.description])]) out.push({ t: 'p', n, u: `${ctx.BASE}${p}`, d });
   return out;
 }
 
@@ -288,7 +293,7 @@ ${files.map(({ file, lastmod }) => `  <sitemap><loc>${xml(abs(`/${file}`))}</loc
 `;
 
 function robots() {
-  const bots = ['Googlebot', 'Bingbot', 'DuckDuckBot', 'Applebot', 'Applebot-Extended', 'Google-Extended', 'GPTBot', 'OAI-SearchBot', 'ChatGPT-User', 'ClaudeBot', 'Claude-User', 'Claude-SearchBot', 'anthropic-ai', 'PerplexityBot', 'Perplexity-User', 'CCBot', 'Meta-ExternalAgent', 'MistralAI-User', 'cohere-ai', 'Amazonbot', 'YouBot'];
+  const bots = ['Googlebot', 'Bingbot', 'DuckDuckBot', 'DuckAssistBot', 'Applebot', 'Applebot-Extended', 'Google-Extended', 'GPTBot', 'OAI-SearchBot', 'ChatGPT-User', 'ClaudeBot', 'Claude-User', 'Claude-SearchBot', 'anthropic-ai', 'PerplexityBot', 'Perplexity-User', 'CCBot', 'Meta-ExternalAgent', 'Meta-ExternalFetcher', 'MistralAI-User', 'cohere-ai', 'Amazonbot', 'YouBot'];
   // A crawler reads only the group that names it, so every group repeats the content signal.
   const signal = 'Content-Signal: search=yes, ai-input=yes, ai-train=yes';
   return `# Terminal Email welcomes search engines and AI crawlers.
@@ -303,6 +308,20 @@ Allow: /
 ${signal}
 
 Sitemap: ${abs('/sitemap.xml')}
+`;
+}
+
+// security.txt (RFC 9116). Contacts are the ones in SECURITY.md. Expires is required, so it is
+// set a year after each build; every deploy builds the site again.
+function securityTxt(now = new Date(NOW)) {
+  const expires = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000).toISOString().replace(/\.\d{3}Z$/, 'Z');
+  return `Contact: mailto:security@forwardemail.net
+Contact: ${REPO}/security/advisories/new
+Expires: ${expires}
+Encryption: https://forwardemail.net/.well-known/openpgpkey/hu/mxqp8ogw4jfq83a58pn1wy1ccc1cx3f5.asc
+Policy: ${REPO}/blob/${site.branch}/SECURITY.md
+Preferred-Languages: en
+Canonical: ${abs('/.well-known/security.txt')}
 `;
 }
 
@@ -470,4 +489,4 @@ self.addEventListener('fetch', (event) => {
 `;
 }
 
-module.exports = { homeMd, entryMd, systemMd, compareMd, alternativesMd, featureMd, setupMd, indexMd, compareIndexMd, alternativesIndexMd, featuresIndexMd, systemsIndexMd, llmsTxt, llmsFullTxt, entryJson, clientsJson, searchJson, sitemap, sitemapIndex, robots, feed, manifest, serviceWorker };
+module.exports = { securityTxt, homeMd, entryMd, systemMd, compareMd, alternativesMd, featureMd, setupMd, indexMd, compareIndexMd, alternativesIndexMd, featuresIndexMd, systemsIndexMd, llmsTxt, llmsFullTxt, entryJson, clientsJson, searchJson, sitemap, sitemapIndex, robots, feed, manifest, serviceWorker };

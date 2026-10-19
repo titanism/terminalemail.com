@@ -11,6 +11,7 @@ const T = require('./templates');
 const P = require('./pages');
 const m = require('./machine');
 const og = require('./og');
+const G = require('./guides');
 
 const OUT = path.join(ROOT, '_site');
 const { entries, clients, tools, systems, comparisons, alternatives, features, pages, DOCS, site, BASE, SITE_URL, newest, lastmod } = ctx;
@@ -67,6 +68,7 @@ for (const a of alternatives) page(a.path, P.alternativesPage(a), m.alternatives
 page('/features/', P.featuresIndex(), m.featuresIndexMd(), { lastmod: newest(clients) });
 for (const f of features) page(f.path, P.featurePage(f), m.featureMd(f), { lastmod: newest(f.list) });
 page('/setup/', P.setupPage(), m.setupMd(), { lastmod: newest(entries) });
+for (const g of G.GUIDES) page(g.path, g.html(), g.md(), { lastmod: newest(entries) });
 for (const d of [...pages, ...DOCS]) page(d.path, P.docPage(d), d.body, { lastmod: lastmod(d.file) });
 page('/search/', P.searchPage(), null, { index: false });
 page('/offline/', P.offlinePage(), null, { index: false });
@@ -79,6 +81,7 @@ write('llms-full.txt', m.llmsFullTxt());
 write('api/clients.json', JSON.stringify(m.clientsJson(), null, 2));
 write('api/search.json', JSON.stringify(m.searchJson()));
 write('robots.txt', m.robots());
+write('.well-known/security.txt', m.securityTxt());
 write('feed.xml', m.feed());
 write('site.webmanifest', m.manifest());
 write('sw.js', m.serviceWorker());

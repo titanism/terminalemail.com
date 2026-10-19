@@ -67,7 +67,7 @@ jobs:
           # The first audit on a fresh runner also pays for starting Chrome and filling cold
           # caches, which can cost the first page several points. Run one and discard it.
           audit / mobile warmup.json
-          pages="/ /clients/ /tools/ /clients/forward-email/ /clients/neomutt/ /tools/isync/ /systems/ /linux/ /windows/ /android/ /compare/aerc-vs-neomutt/ /alternatives/mutt/ /features/pgp/ /setup/ /about/ /contribute/"
+          pages="/ /clients/ /tools/ /clients/forward-email/ /clients/neomutt/ /tools/isync/ /systems/ /linux/ /windows/ /android/ /compare/aerc-vs-neomutt/ /alternatives/mutt/ /features/pgp/ /setup/ /best/ /faq/ /glossary/ /about/ /contribute/"
           i=0
           for p in $pages; do
             for preset in mobile desktop; do

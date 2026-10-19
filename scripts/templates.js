@@ -122,6 +122,10 @@ function md(text) {
   return html;
 }
 
+// The first candidate no longer than `max` characters, or the last one. Titles and descriptions
+// use it to say as much as fits in a search result.
+const fit = (max, ...candidates) => candidates.find((c) => [...c].length <= max) ?? candidates[candidates.length - 1];
+
 // Shorten text to at most `max` characters, at a sentence end when one ends late enough,
 // otherwise at a word boundary with an ellipsis. Counted by code point.
 function clip(text, max) {
@@ -262,6 +266,17 @@ function installTabs(e, { idp = 'inst' } = {}) {
 
 // ---------- structured data ----------
 
+// Forward Email, as forwardemail.net describes itself in its own structured data.
+const FORWARD_EMAIL = {
+  '@type': 'Organization',
+  '@id': 'https://forwardemail.net/#organization',
+  name: 'Forward Email',
+  legalName: 'Forward Email LLC',
+  url: 'https://forwardemail.net',
+  logo: { '@type': 'ImageObject', url: 'https://forwardemail.net/img/logo-square-180x180.png', width: 180, height: 180 },
+  sameAs: ['https://github.com/forwardemail', 'https://x.com/fwdemail', 'https://www.reddit.com/r/forwardemail/', 'https://www.youtube.com/forwardemail']
+};
+
 const ORG = {
   '@type': 'Organization',
   '@id': `${SITE_URL}/#organization`,
@@ -271,7 +286,9 @@ const ORG = {
   logo: { '@type': 'ImageObject', url: `${SITE_URL}/icon-512.png`, width: 512, height: 512 },
   image: `${SITE_URL}/og.png`,
   sameAs: [REPO],
-  parentOrganization: { '@type': 'Organization', name: 'Forward Email', url: 'https://forwardemail.net' }
+  // Corrections and suggestions go through GitHub issues; there is no phone or postal contact.
+  contactPoint: { '@type': 'ContactPoint', contactType: 'corrections and suggestions', url: `${REPO}/issues`, availableLanguage: 'en' },
+  parentOrganization: FORWARD_EMAIL
 };
 const website = () => ({
   '@type': 'WebSite',
@@ -335,7 +352,7 @@ const NAV = [
   ['Systems', '/systems/'],
   ['Compare', '/compare/'],
   ['Setup', '/setup/'],
-  ['Forward Email', '/clients/forward-email/'],
+  ['Forward Email app', '/clients/forward-email/'],
   ['About', '/about/']
 ];
 
@@ -344,24 +361,30 @@ function shareBox(url, text) {
   const T = encodeURIComponent(text);
   const both = encodeURIComponent(`${text} ${url}`);
   const targets = [
-    [t('Messages'), `sms:?&body=${both}`],
+    [t('Messages'), `sms:?body=${both}`],
     [t('Email'), `mailto:?subject=${T}&body=${both}`],
     ['WhatsApp', `https://wa.me/?text=${both}`],
     ['Telegram', `https://t.me/share/url?url=${U}&text=${T}`],
     ['Mastodon', `https://mastodon.social/share?text=${both}`],
     ['Bluesky', `https://bsky.app/intent/compose?text=${both}`],
-    ['X', `https://x.com/intent/post?text=${T}&url=${U}`],
+    ['X (Twitter)', `https://x.com/intent/post?text=${T}&url=${U}`],
     ['Reddit', `https://www.reddit.com/submit?url=${U}&title=${T}`],
     ['Hacker News', `https://news.ycombinator.com/submitlink?u=${U}&t=${T}`],
     ['LinkedIn', `https://www.linkedin.com/sharing/share-offsite/?url=${U}`],
     ['Facebook', `https://www.facebook.com/sharer/sharer.php?u=${U}`]
   ];
+  // Messages and Email have no recipient, so they are buttons that app.js opens (and shows),
+  // not links that crawlers would try to follow.
+  const target = ([n, href]) =>
+    /^(mailto|sms):/.test(href)
+      ? `<li hidden data-share-app><button class="share-to" type="button" data-share-href="${esc(href)}">${esc(n)}</button></li>`
+      : `<li><a class="share-to" href="${esc(href)}" rel="nofollow noopener noreferrer" target="_blank"${n === 'Mastodon' ? ' data-mastodon' : ''}>${esc(n)}</a></li>`;
   return `<div id="share" class="share-pop" popover role="dialog" aria-labelledby="share-h" data-share-pop data-url="${esc(url)}" data-text="${esc(text)}">
   <div class="embed-head"><h2 id="share-h">${th('Share')}</h2><button class="icon-btn" type="button" popovertarget="share" popovertargetaction="hide" aria-label="${esc(t('Close'))}">✕</button></div>
   <p class="share-title">${esc(text)}</p>
   <button class="btn share-native" type="button" data-share-native hidden>${ICONS.share}<span>${th('Share with an app on this device')}</span></button>
   <div class="share-link"><label class="sr" for="share-url">${th('Link')}</label><input id="share-url" type="text" value="${esc(url)}" readonly data-share-url><button class="btn btn-quiet" type="button" data-share-copy>${ICONS.link}<span>${th('Copy link')}</span></button></div>
-  <ul class="share-grid">${targets.map(([n, href]) => `<li><a class="share-to" href="${esc(href)}"${/^(mailto|sms):/.test(href) ? '' : ' rel="nofollow noopener noreferrer" target="_blank"'}${n === 'Mastodon' ? ' data-mastodon' : ''}>${esc(n)}</a></li>`).join('')}</ul>
+  <ul class="share-grid">${targets.map(target).join('')}</ul>
   <form class="share-mastodon" data-mastodon-form hidden><label for="share-instance">${th('Your Mastodon server')}</label><div><input id="share-instance" type="text" inputmode="url" placeholder="mastodon.social" autocomplete="off" spellcheck="false"><button class="btn" type="submit">${th('Share')}</button></div></form>
   <p class="muted small" data-share-status role="status">${th('These are plain links. No share buttons, scripts or trackers from other sites are loaded.')}</p>
 </div>`;
@@ -395,7 +418,10 @@ const CSP = [
 ].join('; ');
 
 function layout({ title, description, body, pathname, jsonld = [], noindex = false, lastmod = null, type = 'website', markdown = true, share = null, shareable = true, og = null, preloadShot = null }) {
-  const fullTitle = title ? `${title} | ${site.title}` : `${site.title}: terminal email clients for every system`;
+  // The site name is added when the whole title still fits in 60 characters, the length search
+  // results show; a longer page title stands alone.
+  const suffixed = `${title || 'Terminal email clients for every system'} | ${site.title}`;
+  const fullTitle = [...suffixed].length <= 60 || !title ? suffixed : title;
   const text = description || site.tagline;
   const desc = clip(text, 160);
   const socialDesc = clip(text, 200);
@@ -403,7 +429,7 @@ function layout({ title, description, body, pathname, jsonld = [], noindex = fal
   if (og) ogJobs.push({ file: ogFile(pathname), spec: og });
   const image = og ? `${SITE_URL}/${ogFile(pathname)}` : `${SITE_URL}/og.png`;
   const imageAlt = ogAlt(og);
-  const IMAGE_TYPES = new Set(['WebPage', 'CollectionPage', 'SoftwareApplication', 'Article']);
+  const IMAGE_TYPES = new Set(['WebPage', 'AboutPage', 'CollectionPage', 'SoftwareApplication', 'Article']);
   const graph = { '@context': 'https://schema.org', '@graph': [ORG, website(), ...jsonld.map((j) => (IMAGE_TYPES.has(j['@type']) && !j.image ? { ...j, image } : j))] };
   const nav = NAV.map(([n, p]) => `<a href="${u(p)}"${pathname === p ? ' aria-current="page"' : ''}>${th(n)}</a>`).join('');
   const mdLink = u(pathname === '/' ? '/index.md' : `${pathname}index.md`);
@@ -417,7 +443,7 @@ function layout({ title, description, body, pathname, jsonld = [], noindex = fal
 <script>${THEME_SCRIPT}</script>
 <title>${esc(fullTitle)}</title>
 <meta name="description" content="${esc(desc)}">
-<meta name="robots" content="${noindex ? 'noindex, follow' : 'index, follow, max-image-preview:large, max-snippet:-1'}">
+<meta name="robots" content="${noindex ? 'noindex, follow' : 'index, follow, max-image-preview:large'}">
 <link rel="canonical" href="${esc(url)}">
 ${markdown ? `<link rel="alternate" type="text/markdown" href="${esc(mdLink)}" title="Markdown version">\n` : ''}<link rel="alternate" type="application/json" href="${BASE}/api/clients.json" title="All clients as JSON">
 <link rel="alternate" type="application/atom+xml" href="${BASE}/feed.xml" title="Changes to the list">
@@ -455,8 +481,7 @@ ${lastmod ? `<meta property="article:modified_time" content="${esc(lastmod)}">\n
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="format-detection" content="telephone=no">
 <link rel="stylesheet" href="${BASE}/style.css">
-<script type="application/ld+json">${JSON.stringify(graph).replace(/</g, '\\u003c')}</script>
-</head>
+${noindex ? '' : `<script type="application/ld+json">${JSON.stringify(graph).replace(/</g, '\\u003c')}</script>\n`}</head>
 <body data-base="${esc(BASE)}">
 <a class="skip" href="#main">${th('Skip to content')}</a>
 <header class="top">
@@ -466,7 +491,7 @@ ${lastmod ? `<meta property="article:modified_time" content="${esc(lastmod)}">\n
     <div class="top-actions">
       <a class="search-trigger" href="${u('/search/')}" data-palette aria-label="${esc(t('Search clients and tools'))}" aria-keyshortcuts="Control+K Meta+K">${ICONS.search}<span class="st-label">${th('Search')}</span><kbd class="st-kbd" aria-hidden="true" data-k="⌘K"></kbd></a>
       ${shareable ? `<button class="icon-btn" type="button" popovertarget="share" data-share data-tip="${esc(t('Share this page'))}" aria-label="${esc(t('Share this page'))}">${ICONS.share}</button>` : ''}
-      <a class="icon-btn hide-xs" href="${REPO}" data-tip="${esc(t('Source on GitHub'))}" aria-label="${esc(t('GitHub repository'))}">${ICONS.github}</a>
+      <a class="icon-btn hide-xs" href="${REPO}" data-tip="${esc(t('Source on GitHub'))}">${ICONS.github}<span class="sr">${th('GitHub repository')}</span></a>
       <button class="icon-btn theme-toggle" type="button" data-theme-toggle aria-label="${esc(t('Color theme: system'))}" data-tip="${esc(t('Theme: follows your system'))}">
         <span class="ti ti-system">${ICONS.system}</span><span class="ti ti-light">${ICONS.light}</span><span class="ti ti-dark">${ICONS.dark}</span>
       </button>
@@ -485,8 +510,9 @@ ${shareable ? shareBox(url, share || title || `${site.title}: ${site.tagline}`) 
   <div class="wrap foot-grid">
     <div>
       <p class="brand-sm">${logo(22)} ${esc(site.title)}</p>
+      <p>${th(site.tagline)}</p>
       <p>${th(site.disclosure)}</p>
-      <p><a href="${u('/about/')}">${th('How the list is made')}</a></p>
+      <p><a href="${u('/about/')}">${th('How the list is made')}</a> · <a href="${u('/about/')}#contact-and-corrections">${th('Contact')}</a></p>
     </div>
     <nav aria-label="${esc(t('Systems'))}">
       <h2 class="foot-h">${th('Systems')}</h2>
@@ -494,16 +520,16 @@ ${shareable ? shareBox(url, share || title || `${site.title}: ${site.tagline}`) 
     </nav>
     <nav aria-label="${esc(t('Explore'))}">
       <h2 class="foot-h">${th('Explore')}</h2>
-      <ul><li><a href="${u('/clients/')}">${th('All clients')}</a></li><li><a href="${u('/tools/')}">${th('Mail tools')}</a></li><li><a href="${u('/compare/')}">${th('Comparisons')}</a></li><li><a href="${u('/alternatives/')}">${th('Alternatives')}</a></li><li><a href="${u('/features/')}">${th('By feature')}</a></li><li><a href="${u('/setup/')}">${th('Forward Email setup')}</a></li></ul>
+      <ul><li><a href="${u('/best/')}">${th('Best clients by need')}</a></li><li><a href="${u('/clients/')}">${th('All clients')}</a></li><li><a href="${u('/tools/')}">${th('Mail tools')}</a></li><li><a href="${u('/compare/')}">${th('Comparisons')}</a></li><li><a href="${u('/alternatives/')}">${th('Alternatives')}</a></li><li><a href="${u('/features/')}">${th('By feature')}</a></li><li><a href="${u('/setup/')}">${th('Forward Email setup')}</a></li><li><a href="${u('/faq/')}">${th('Questions and answers')}</a></li><li><a href="${u('/glossary/')}">${th('Glossary')}</a></li></ul>
     </nav>
     <nav aria-label="${esc(t('Project'))}">
       <h2 class="foot-h">${th('Project')}</h2>
-      <ul><li><a href="${REPO}">GitHub</a></li><li><a href="${REPO}/issues/new?template=suggest.yml">${th('Suggest a client')}</a></li><li><a href="${REPO}/issues/new?template=correction.yml">${th('Report a mistake')}</a></li><li><a href="${u('/contribute/')}">${th('Contribute')}</a></li><li><a href="${BASE}/api/clients.json">${th('JSON API')}</a></li><li><a href="${BASE}/llms.txt">llms.txt</a></li><li><a href="${BASE}/feed.xml">${th('Atom feed')}</a></li><li><a href="${BASE}/sitemap.xml">${th('Sitemap')}</a></li></ul>
+      <ul><li><a href="${REPO}">GitHub</a></li><li><a href="${REPO}/issues/new?template=suggest.yml">${th('Suggest a client')}</a></li><li><a href="${REPO}/issues/new?template=correction.yml">${th('Report a mistake')}</a></li><li><a href="${u('/contribute/')}">${th('Contribute')}</a></li><li><a href="${u('/privacy/')}">${th('Privacy policy')}</a></li><li><a href="${u('/terms/')}">${th('Terms of use')}</a></li><li><a href="${BASE}/api/clients.json">${th('JSON API')}</a></li><li><a href="${BASE}/llms.txt">llms.txt</a></li><li><a href="${BASE}/feed.xml">${th('Atom feed')}</a></li><li><a href="${BASE}/sitemap.xml">${th('Sitemap')}</a></li></ul>
     </nav>
   </div>
   <div class="wrap foot-legal">
     <p>${th('Facts are checked against each project\'s own website, repository and package listings, and each page links to its sources. Anyone can {correction}.', { correction: `<a href="${REPO}/issues/new?template=correction.yml">${th('report a mistake')}</a>` })}</p>
-    <p>${th('Content {content}. Code {code}. No trackers, cookies, ads or affiliate links.', { content: '<a href="https://creativecommons.org/licenses/by-sa/4.0/" rel="license">CC BY-SA 4.0</a>', code: `<a href="${REPO}/blob/${site.branch}/LICENSE">MIT</a>` })}</p>
+    <p>${th('Content {content}. Code {code}. No trackers, cookies, ads or affiliate links.', { content: '<a href="https://creativecommons.org/licenses/by-sa/4.0/" rel="license">CC BY-SA 4.0</a>', code: `<a href="${REPO}/blob/${site.branch}/LICENSE">MIT License</a>` })}</p>
   </div>
 </footer>
 <script src="${BASE}/app.js" defer></script>
@@ -512,4 +538,4 @@ ${shareable ? shareBox(url, share || title || `${site.title}: ${site.tagline}`) 
 `;
 }
 
-module.exports = { esc, md, httpUrl, clip, u, abs, CSP, THEME_SCRIPT, ogJobs, layout, logo, ICONS, osMatrix, osKey, supportSentence, cell, cellText, tags, listing, osChips, filterRow, cmdLine, codeBlock, installTabs, ext, hostname, licenseText, licenseHtml, joinList, osName, plural, softwareLd, breadcrumbs, itemList, faqLd, ORG, website, filterText, headingSlug };
+module.exports = { fit, esc, md, httpUrl, clip, u, abs, CSP, THEME_SCRIPT, ogJobs, layout, logo, ICONS, osMatrix, osKey, supportSentence, cell, cellText, tags, listing, osChips, filterRow, cmdLine, codeBlock, installTabs, ext, hostname, licenseText, licenseHtml, joinList, osName, plural, softwareLd, breadcrumbs, itemList, faqLd, ORG, website, filterText, headingSlug };

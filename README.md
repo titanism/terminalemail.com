@@ -9,12 +9,13 @@ It is made by [Forward Email](https://forwardemail.net), whose terminal app (`fo
 - A page for every client and tool, with install commands per system and the sources each fact was checked against
 - A page for each operating system, listing what runs there and how to install it
 - A side-by-side comparison for every pair of clients, and an alternatives page for each client
+- The best client for each common need, questions and answers, and a glossary, all built from the same data
 - Lists by feature: OpenPGP, IMAP, JMAP, Maildir, notmuch, OAuth2, mouse support, Vim keys and more
 - Forward Email's IMAP, POP3 and SMTP settings with a config for every client
 - Search (Ctrl+K or ⌘K), filtering by system, and light and dark themes
-- A Markdown copy of every page (add `index.md` to the URL), [llms.txt](https://terminalemail.com/llms.txt), a [JSON API](https://terminalemail.com/api/clients.json), an Atom feed and a sitemap
+- A Markdown copy of every page (add `index.md` to the URL), [llms.txt](https://terminalemail.com/llms.txt), [llms-full.txt](https://terminalemail.com/llms-full.txt), a [JSON API](https://terminalemail.com/api/clients.json), an Atom feed, a sitemap and [security.txt](https://terminalemail.com/.well-known/security.txt)
 - Structured data (schema.org) and a social image for every page
-- No trackers, cookies, ads or affiliate links; every page works without JavaScript
+- No trackers, cookies, ads or affiliate links ([privacy policy](https://terminalemail.com/privacy/)); every page works without JavaScript
 
 ## Data
 
@@ -39,7 +40,8 @@ The site builds into `_site/` and is published with GitHub Pages by [`.github/wo
 | `scripts/lib.js` | Data loading and validation |
 | `scripts/context.js` | Everything derived from the data: systems, comparisons, alternatives, feature lists |
 | `scripts/templates.js`, `scripts/pages.js` | HTML |
-| `scripts/machine.js` | Markdown, llms.txt, JSON, sitemap, robots.txt, feed, manifest, service worker |
+| `scripts/guides.js` | Best clients by need, questions and answers, glossary |
+| `scripts/machine.js` | Markdown, llms.txt, JSON, sitemap, robots.txt, security.txt, feed, manifest, service worker |
 | `scripts/og.js` | Social images |
 | `site/` | Stylesheet, script, fonts, icons and screenshots, copied as they are |
 

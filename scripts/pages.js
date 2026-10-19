@@ -8,9 +8,9 @@ const lib = require('./lib');
 const T = require('./templates');
 const { t, th } = require('./i18n');
 
-const { site, REPO, entries, clients, tools, featured, systems, comparisons, comparisonFor, alternatives, features, pages, DOCS, FE_SETTINGS, has, newest, lastmod } = ctx;
+const { site, REPO, entries, clients, tools, featured, systems, comparisons, comparisonFor, bySlug, alternatives, features, pages, DOCS, FE_SETTINGS, has, newest, lastmod } = ctx;
 const { OSES, SUPPORT, INTERFACES, TYPES, PROTOCOLS, FEATURES } = lib;
-const { esc, md, u, abs, layout, osMatrix, osKey, cell, tags, listing, osChips, filterRow, cmdLine, codeBlock, installTabs, ext, licenseText, licenseHtml, joinList, osName, plural, softwareLd, breadcrumbs, itemList, faqLd, supportSentence } = T;
+const { fit, esc, md, u, abs, layout, osMatrix, osKey, cell, tags, listing, osChips, filterRow, cmdLine, codeBlock, installTabs, ext, licenseText, licenseHtml, joinList, osName, plural, softwareLd, breadcrumbs, itemList, faqLd, supportSentence } = T;
 
 const names = (list) => list.map((e) => e.name);
 const linkNames = (list) => joinList(list.map((e) => `<a href="${u(e.path)}">${esc(e.name)}</a>`));
@@ -26,12 +26,21 @@ function winRest() {
   return parts.join(' ');
 }
 
+// "Of the 19 clients on this site, 11 are full-screen (TUI), 4 are command-line and 4 run inside Emacs."
+const IFACE_PHRASE = { tui: 'are full-screen (TUI)', cli: 'are command-line', emacs: 'run inside Emacs', vim: 'run inside Vim' };
+function interfaceCounts(list = clients) {
+  const parts = Object.keys(IFACE_PHRASE).map((k) => [k, list.filter((c) => c.interface === k).length]).filter(([, n]) => n);
+  return `Of the ${plural(list.length, 'client', 'clients')} on this site, ${joinList(parts.map(([k, n]) => `${n} ${IFACE_PHRASE[k]}`))}.`;
+}
+// Clients with no built-in IMAP or POP3: they read local folders that a sync tool fills.
+const maildirOnly = () => clients.filter((c) => c.protocols.imap !== true && c.protocols.pop3 !== true && !c.backend && (c.protocols.maildir === true || c.protocols.mbox === true));
+
 function faqBlock(qa, { id = 'questions', title = 'Questions' } = {}) {
-  return `<section class="faq" aria-labelledby="${id}"><h2 id="${id}">${th(title)}</h2>${qa.map(([q, a]) => `<details><summary>${esc(q)}</summary><div class="answer"><p>${a}</p></div></details>`).join('')}</section>`;
+  return `<section class="faq" aria-labelledby="${id}"><h2 id="${id}">${th(title)}</h2>${qa.map(([q, a]) => `<details><summary><h3>${esc(q)}</h3></summary><div class="answer"><p>${a}</p></div></details>`).join('')}</section>`;
 }
 
 function settingsTable() {
-  return `<div class="table-scroll" tabindex="0"><table class="matrix settings-table"><thead><tr><th scope="col">${th('Protocol')}</th><th scope="col">${th('Server')}</th><th scope="col">${th('Port')}</th><th scope="col">${th('Security')}</th></tr></thead><tbody>${FE_SETTINGS.map(([p, h, port, sec]) => `<tr><th scope="row">${esc(p)}</th><td><code>${esc(h)}</code></td><td>${esc(port)}</td><td>${esc(sec)}</td></tr>`).join('')}</tbody></table></div>
+  return `<div class="table-scroll" tabindex="0"><table class="matrix settings-table"><caption class="sr">${th('Forward Email server settings')}</caption><thead><tr><th scope="col">${th('Protocol')}</th><th scope="col">${th('Server')}</th><th scope="col">${th('Port')}</th><th scope="col">${th('Security')}</th></tr></thead><tbody>${FE_SETTINGS.map(([p, h, port, sec]) => `<tr><th scope="row">${esc(p)}</th><td><code>${esc(h)}</code></td><td>${esc(port)}</td><td>${esc(sec)}</td></tr>`).join('')}</tbody></table></div>
 <p class="muted small">${th('Username: your full alias address, such as you@example.com. Password: the one shown by Generate Password next to the alias in your Forward Email account. Folders: INBOX, Drafts, Sent Mail, Trash, Spam and Archive.')}</p>`;
 }
 
@@ -42,9 +51,14 @@ function gallery(e, { idp = 'shots', first = 0, sizes = ENTRY_SIZES, eager = tru
   if (!shots.length) return '';
   const src = (theme, s, size = '') => u(`/screenshots/${e.slug}/${theme}-${s.name}${size}.webp`);
   const img = (s, i) => {
-    const lazy = i === first && eager ? 'fetchpriority="high"' : 'loading="lazy"';
+    // The first screenshot can be the largest paint. On client pages the dark one loads first with
+    // high priority, and the head preloads whichever theme is showing; on the home page, where the
+    // shot sits beside the text, neither theme waits for lazy loading.
+    const load = (theme) => (i !== 0 ? 'loading="lazy"' : !eager ? '' : theme === 'dark' ? 'fetchpriority="high"' : 'loading="lazy"');
     const set = (theme) => `src="${src(theme, s)}" srcset="${src(theme, s, '-720')} 720w, ${src(theme, s)} 1440w" sizes="${sizes}"`;
-    return `<img class="shot shot-dark" ${set('dark')} width="1440" height="960" alt="${esc(s.alt)}" ${lazy} decoding="async"><img class="shot shot-light" ${set('light')} width="1440" height="960" alt="${esc(s.alt)}" loading="lazy" decoding="async">`;
+    // Short alt text: the caption under the image has the full description.
+    const alt = esc(`${e.name}: ${s.name} screen`);
+    return `<img class="shot shot-dark" ${set('dark')} width="1440" height="960" alt="${alt}" ${load('dark')} decoding="async"><img class="shot shot-light" ${set('light')} width="1440" height="960" alt="${alt}" ${load('light')} decoding="async">`;
   };
   const label = (s) => s.name.charAt(0).toUpperCase() + s.name.slice(1);
   const order = [...shots.slice(first), ...shots.slice(0, first)];
@@ -70,11 +84,12 @@ function homeFaq() {
   const jmap = clients.filter((c) => c.protocols.jmap === true);
   const mouse = clients.filter((c) => c.features.mouse === true);
   const notOss = clients.filter((c) => !c.openSource);
+  const images = clients.filter((c) => /inline images/.test(String(c.features.html)));
   return [
     ['What is a terminal email client?', `A program that reads and sends email inside a terminal window, with text instead of graphics. Full-screen ones (TUIs) such as <a href="${u('/clients/neomutt/')}">NeoMutt</a>, <a href="${u('/clients/aerc/')}">aerc</a> and <a href="${u('/clients/forward-email/')}">Forward Email</a> work like an app inside the terminal. Command-line ones such as <a href="${u('/clients/himalaya/')}">Himalaya</a> and <a href="${u('/clients/s-nail/')}">s-nail</a> are commands you run and script.`],
     ['Which terminal email clients run natively on Windows?', `${linkNames(winNative)} run directly on Windows. ${winRest()} See <a href="${u('/windows/')}">terminal email on Windows</a>.`],
     ['Can I use Gmail or Outlook?', `Yes, over IMAP and SMTP. Google and Microsoft require OAuth2 sign-in for most accounts: ${linkNames(oauthBuiltIn)} handle it themselves, and ${linkNames(oauth.filter((c) => c.features.oauth2 !== true))} need extra setup, such as a token helper script or an Emacs package.`],
-    ['Can terminal clients show HTML email?', 'Most show the plain-text part of a message and pass HTML to a text browser such as w3m or lynx, which turns it into readable text with numbered links. Images are not shown in the terminal; most clients can open a message in a graphical browser when needed.'],
+    ['Can terminal clients show HTML email?', `Most show the plain-text part of a message and pass HTML to a text browser such as w3m or lynx, which turns it into readable text with numbered links. Most do not draw images${images.length ? `; ${linkNames(images)} can show inline images in terminals that support an image protocol` : ''}. Most clients can open a message in a graphical browser when needed.`],
     ['Which clients support JMAP?', `${linkNames(jmap)} ${jmap.length === 1 ? 'supports' : 'support'} JMAP, the JSON protocol some providers offer instead of IMAP. The other clients use IMAP, POP3 or local folders, and Forward Email's app uses Forward Email's own API.`],
     ['Which clients work with a mouse?', `${linkNames(mouse)} respond to clicks and scrolling. The others are keyboard-only.`],
     ['Are they open source?', `All of them except ${linkNames(notOss)}, whose code is public under the ${notOss.map(licenseText).join(', ')}, a source-available license. Each page links to the project's repository and license.`],
@@ -114,7 +129,7 @@ ${installTabs(fe, { idp: 'home-inst' })}
 
 <section id="clients" aria-labelledby="clients-h">
 <h2 id="clients-h">Clients</h2>
-<p class="measure">Programs you read and write mail in. Pick a system to see what runs there, or filter by name, language or protocol.</p>
+<p class="measure">${interfaceCounts()} ${plural(nativeOn('windows').length, 'runs', 'run')} natively on Windows. Pick a system to see what runs there, filter by name, language or protocol, or start with <a href="${u('/best/')}">the best picks by need</a>.</p>
 ${osChips()}
 ${filterRow()}
 ${osKey()}
@@ -123,24 +138,27 @@ ${listing(clients, { caption: `${clients.length} email clients`, id: 'client-tab
 
 <section id="tools" aria-labelledby="tools-h">
 <h2 id="tools-h">Mail tools</h2>
-<p class="measure">Programs that sync, send, fetch or index mail for the clients above. A Maildir client such as alot or mu4e needs a sync tool like isync, and many clients send through msmtp.</p>
+<p class="measure">${plural(tools.length, 'program syncs', 'programs sync')}, send, fetch or index mail for the clients above. ${plural(maildirOnly().length, 'client reads', 'clients read')} only local folders, such as ${linkNames(maildirOnly().slice(0, 2))}, and ${maildirOnly().length === 1 ? 'needs' : 'need'} a sync tool like isync; many clients send through msmtp.</p>
 ${listing(tools, { caption: `${tools.length} mail tools`, id: 'tool-table' })}
 </section>
 
 <section aria-labelledby="sys-h">
 <h2 id="sys-h">By system</h2>
+<p class="measure">${joinList(systems.map((s) => `${s.clients.length} ${s.id === 'linux' ? `of the ${clients.length} clients run` : 'run'} on ${esc(s.name)}${s.id === 'android' ? ' through Termux' : s.native.length < s.clients.length ? ` (${s.native.length} natively)` : ''}`))}.</p>
 ${systemsGrid()}
 </section>
 
 <section aria-labelledby="feat-h">
 <h2 id="feat-h">By feature</h2>
+<p class="measure">${features.length} lists of clients that share a feature, from ${features.find((f) => f.slug === 'open-source') ? `${features.find((f) => f.slug === 'open-source').list.length} open-source clients` : 'open-source clients'} to ${features.find((f) => f.slug === 'jmap') ? `${features.find((f) => f.slug === 'jmap').list.length} with JMAP` : 'JMAP'}. Terms such as Maildir, JMAP and OAuth2 are explained in <a href="${u('/glossary/')}">the glossary</a>.</p>
 <ul class="link-list">${features.map((f) => `<li><a href="${u(f.path)}">${esc(f.h1)}</a> <span class="muted">(${f.list.length})</span></li>`).join('')}</ul>
 </section>
 
-${faqBlock(qa)}`;
+${faqBlock(qa)}
+<p><a href="${u('/faq/')}">${th('More questions and answers')}</a></p>`;
   return layout({
     title: null,
-    description: `${maintainedClients.length} maintained terminal email clients for Linux, macOS, Windows, BSD and Android, compared by protocols, features and install commands. Featuring Forward Email's terminal app.`,
+    description: `${maintainedClients.length} terminal email clients for Linux, macOS, Windows, BSD and Android, compared by protocols, features and install commands.`,
     body,
     pathname: '/',
     jsonld: [{ '@type': 'CollectionPage', '@id': `${abs('/')}#page`, name: site.title, url: abs('/'), description: site.tagline, isPartOf: { '@id': `${abs('/')}#website` }, mainEntity: itemList('Terminal email clients', clients) }, softwareLd(fe), faqLd(qa.map(([q, a]) => [q, a]))],
@@ -204,9 +222,9 @@ function entryPage(e) {
     e.latest_version ? ['Latest version', `<code>${esc(e.latest_version)}</code>`] : null,
     e.lineage ? ['Background', esc(e.lineage)] : null,
     ['Maintained', e.maintained ? 'Yes' : 'No recent commits or releases'],
-    e.website ? ['Website', ext(e.website)] : null,
+    e.website ? ['Website', ext(e.website, e.website.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, ''))] : null,
     e.repo ? ['Source', ext(e.repo, e.repo.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, ''))] : null,
-    e.docs ? ['Documentation', ext(e.docs)] : null
+    e.docs ? ['Documentation', ext(e.docs, e.docs.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, ''))] : null
   ].filter(Boolean);
   const feSection = e.featured
     ? `<section id="forward-email" aria-labelledby="fe-h"><h2 id="fe-h">Install and run</h2>${codeBlock(e.forward_email, { title: 'Terminal' })}<p class="muted small">${esc(e.account.replace(/`/g, ''))} To use Forward Email in a different client, see <a href="${u('/setup/')}">the setup page</a>.</p></section>`
@@ -228,7 +246,7 @@ ${e.screenshots?.length ? gallery(e, { idp: 'shots' }) : ''}
 <dl class="facts">${facts.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${v}</dd>`).join('')}</dl>
 
 <section aria-labelledby="install-h"><h2 id="install-h">Install</h2>
-<div class="table-scroll" tabindex="0"><table class="matrix"><thead><tr><th scope="col">${th('System')}</th><th scope="col">${th('Support')}</th><th scope="col">${th('Install')}</th></tr></thead><tbody>${platformRows(e)}</tbody></table></div>
+<div class="table-scroll" tabindex="0"><table class="matrix"><caption class="sr">${th('{name} on each system', { name: esc(e.name) })}</caption><thead><tr><th scope="col">${th('System')}</th><th scope="col">${th('Support')}</th><th scope="col">${th('Install')}</th></tr></thead><tbody>${platformRows(e)}</tbody></table></div>
 </section>
 
 <section aria-labelledby="pf-h"><h2 id="pf-h">Protocols and features</h2>
@@ -249,12 +267,13 @@ ${similar.length ? `<section aria-labelledby="cmp-h"><h2 id="cmp-h">Compare ${es
 ${faqBlock(qa)}
 
 <section aria-labelledby="src-h"><h2 id="src-h">Sources</h2><ul class="sources">${e.sources.map((s) => `<li>${ext(s, s.replace(/^https?:\/\/(www\.)?/, ''))}</li>`).join('')}</ul>
-<p class="links-row small"><a href="${REPO}/blob/${site.branch}/${esc(e.file)}">${th('Edit this page on GitHub')}</a><a href="${REPO}/issues/new?${esc(new URLSearchParams({ template: 'correction.yml', title: `Correction: ${e.name}` }).toString())}">${th('Report a mistake')}</a></p>
+<p class="links-row small"><a href="${REPO}/blob/${site.branch}/${esc(e.file)}">${th('Edit this page on GitHub')}</a><a href="${REPO}/issues/new?${esc(new URLSearchParams({ template: 'correction.yml', title: `Correction: ${e.name}` }).toString())}">${th('Report a mistake on this page')}</a></p>
 </section>
 </article>`;
   return layout({
-    title: e.featured ? `${e.name} terminal app: install and features` : `${e.name}: ${e.type === 'tool' ? 'mail tool' : 'terminal email client'}, install and setup`,
-    description: `${e.summary} Install commands for each system, protocols, features and a Forward Email config.`,
+    title: e.featured ? `${e.name} terminal app: install and features` : fit(60, `${e.name}: ${e.type === 'tool' ? 'mail tool' : 'terminal email client'}, install and setup`, `${e.name}: ${e.type === 'tool' ? 'mail tool' : 'email client'}, install and setup`, `${e.name}: install and setup`),
+    // The longest ending that still fits in 150 characters after the summary.
+    description: [' Install commands for each system, protocols, features and a Forward Email config.', ' Install commands, features and a working config.', ' Install and setup.', ''].map((end) => `${e.summary}${end}`).find((d) => [...d].length <= 150) || e.summary,
     body,
     pathname: e.path,
     type: 'article',
@@ -294,15 +313,25 @@ function toolsIndex() {
 </ul>
 ${osKey()}
 ${listing(tools, { caption: `${tools.length} mail tools` })}`;
-  return layout({ title: 'Mail tools for terminal email: sync, send and search', description: 'isync (mbsync), OfflineIMAP, getmail6, msmtp, notmuch and more: the tools that sync, send and index mail for terminal email clients.', body, pathname: '/tools/', jsonld: [{ '@type': 'CollectionPage', name: 'Mail tools', url: abs('/tools/'), mainEntity: itemList('Mail tools', tools) }, breadcrumbs([['Home', '/'], ['Mail tools', '/tools/']])], lastmod: newest(tools), og: { kind: 'list', title: 'Mail tools for the terminal', list: tools } });
+  return layout({ title: 'Terminal mail tools: sync, send and search', description: `${tools.length} mail tools for terminal email: isync (mbsync), OfflineIMAP, getmail6, msmtp, notmuch and more, to sync, send and index mail.`, body, pathname: '/tools/', jsonld: [{ '@type': 'CollectionPage', name: 'Mail tools', url: abs('/tools/'), mainEntity: itemList('Mail tools', tools) }, breadcrumbs([['Home', '/'], ['Mail tools', '/tools/']])], lastmod: newest(tools), og: { kind: 'list', title: 'Mail tools for the terminal', list: tools } });
+}
+
+// "17 clients run on Windows: 5 natively and 12 through WSL. 6 mail tools run there too."
+function systemSummary(s) {
+  const by = Object.keys(SUPPORT).filter((k) => SUPPORT[k].ok).map((k) => [k, s.clients.filter((c) => c.platforms[s.id].support === k).length]).filter(([, n]) => n);
+  const how = { native: 'natively', wsl: 'through WSL', termux: 'through Termux', source: 'built from source' };
+  return `${plural(s.clients.length, 'client runs', 'clients run')} on ${esc(s.name)}: ${joinList(by.map(([k, n]) => `${n} ${how[k]}`))}. ${plural(s.tools.length, 'mail tool runs', 'mail tools run')} there too.`;
 }
 
 function systemsIndex() {
   const body = `<h1>Terminal email by system</h1>
-<p class="lede">Every client runs on Linux. The other systems differ: pick yours for install commands and what runs natively.</p>
+<p class="lede">All ${clients.length} clients run on Linux. The other systems differ: pick yours for install commands and what runs natively.</p>
 ${systemsGrid()}
-<div class="table-scroll" tabindex="0"><table class="matrix"><thead><tr><th scope="col">${th('Client')}</th>${OSES.map((o) => `<th scope="col">${esc(o.name)}</th>`).join('')}</tr></thead><tbody>${clients.map((c) => `<tr><th scope="row"><a href="${u(c.path)}">${esc(c.name)}</a></th>${OSES.map((o) => { const s = c.platforms[o.id].support; return `<td>${s === 'none' ? '<span class="no">No</span>' : s === 'native' ? '<span class="yes">Native</span>' : `<span class="part">${esc(SUPPORT[s].short)}</span>`}</td>`; }).join('')}</tr>`).join('')}</tbody></table></div>`;
-  return layout({ title: 'Terminal email clients by operating system', description: 'Which terminal email clients run on Linux, macOS, Windows, BSD and Android, natively or through WSL and Termux.', body, pathname: '/systems/', jsonld: [breadcrumbs([['Home', '/'], ['Systems', '/systems/']])], lastmod: newest(entries), og: { kind: 'page', title: 'Terminal email by operating system', text: 'Linux, macOS, Windows, BSD and Android' } });
+${systems.map((s) => `<h2 id="${s.id}-h"><a href="${u(s.path)}">${esc(s.name)}</a></h2><p class="measure">${esc(s.blurb)}. ${systemSummary(s)}</p>`).join('\n')}
+<h2>${th('Every client on every system')}</h2>
+<p class="measure">${th('Native means a package or build for the system itself. WSL and Termux run Linux programs on Windows and Android. Source means the program compiles there but has no package.')}</p>
+<div class="table-scroll" tabindex="0"><table class="matrix"><caption class="sr">${th('Support for each client on each system')}</caption><thead><tr><th scope="col">${th('Client')}</th>${OSES.map((o) => `<th scope="col">${esc(o.name)}</th>`).join('')}</tr></thead><tbody>${clients.map((c) => `<tr><th scope="row"><a href="${u(c.path)}">${esc(c.name)}</a></th>${OSES.map((o) => { const s = c.platforms[o.id].support; return `<td>${s === 'none' ? '<span class="no">No</span>' : s === 'native' ? '<span class="yes">Native</span>' : `<span class="part">${esc(SUPPORT[s].short)}</span>`}</td>`; }).join('')}</tr>`).join('')}</tbody></table></div>`;
+  return layout({ title: 'Terminal email clients by operating system', description: `Which of the ${clients.length} terminal email clients run on Linux, macOS, Windows, BSD and Android, natively or through WSL and Termux, with install commands.`, body, pathname: '/systems/', jsonld: [breadcrumbs([['Home', '/'], ['Systems', '/systems/']])], lastmod: newest(entries), og: { kind: 'page', title: 'Terminal email by operating system', text: 'Linux, macOS, Windows, BSD and Android' } });
 }
 
 // ---------- system pages ----------
@@ -349,7 +378,7 @@ ${s.tools.length ? `<h2>Mail tools</h2>${listing(s.tools, { caption: `${s.tools.
 ${faqBlock(qa)}`;
   return layout({
     title: `Terminal email clients for ${s.name}`,
-    description: `${s.clients.length} terminal email clients for ${s.name}, with install commands: ${names(s.clients.slice(0, 4)).join(', ')} and more.`,
+    description: ((lead) => fit(155, `${lead} Protocols, features and a config for each.`, `${lead} Features and a config for each.`, lead))(`${s.clients.length} terminal email clients for ${s.name}${s.id === 'android' ? ' through Termux' : s.native.length < s.clients.length ? ` (${s.native.length} native)` : ''}, with install commands: ${names(s.clients.slice(0, 4)).join(', ')} and more.`),
     body,
     pathname: s.path,
     jsonld: [{ '@type': 'CollectionPage', name: `Terminal email clients for ${s.name}`, url: abs(s.path), mainEntity: itemList(`Terminal email clients for ${s.name}`, s.clients) }, breadcrumbs([['Home', '/'], ['Systems', '/systems/'], [s.name, s.path]]), faqLd(qa)],
@@ -396,6 +425,18 @@ function differences(a, b) {
   return out;
 }
 
+// As many differences as fit in a search result, then what the page has.
+function compareDescription(a, b, diffs) {
+  const plain = diffs
+    .map((d) => d.replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'"))
+    // "NeoMutt: Fork of Mutt." reads as "NeoMutt is a fork of Mutt." in a sentence.
+    .map((d) => d.replace(/^([^:]+): (Fork|Successor|Rewrite|Continuation|Python 3 fork|Python 3 port) of /, (m, n, w) => `${n} is a ${w.toLowerCase()} of `));
+  let text = `${a.name} vs ${b.name}:`;
+  if (!plain.length) text += ' interface, protocols, features and the systems each runs on.';
+  for (const d of plain) if ([...`${text} ${d} Side by side.`].length <= 155) text += ` ${d}`;
+  return fit(155, `${text} Side by side, with install commands.`, `${text} Side by side.`, text);
+}
+
 function comparePage(c) {
   const { a, b } = c;
   const row = (label, fa, fb) => `<tr><th scope="row">${esc(label)}</th><td>${fa}</td><td>${fb}</td></tr>`;
@@ -412,10 +453,10 @@ function comparePage(c) {
   const body = `<nav aria-label="${esc(t('Breadcrumb'))}"><ol class="crumbs"><li><a href="${u('/')}">Home</a></li><li><a href="${u('/compare/')}">Compare</a></li><li aria-current="page">${esc(a.name)} vs ${esc(b.name)}</li></ol></nav>
 <h1>${esc(a.name)} vs ${esc(b.name)}</h1>
 <p class="lede">${esc(a.name)}: ${esc(a.summary)}<br>${esc(b.name)}: ${esc(b.summary)}</p>
-<h2>Differences</h2>
+<h2>How ${esc(a.name)} and ${esc(b.name)} differ</h2>
 ${diffs.length ? `<ul class="measure">${diffs.map((d) => `<li>${d}</li>`).join('')}</ul>` : '<p>They support the same protocols and systems.</p>'}
 <h2>Side by side</h2>
-<div class="table-scroll" tabindex="0"><table class="matrix"><thead><tr><th scope="col"></th><th scope="col"><a href="${u(a.path)}">${esc(a.name)}</a></th><th scope="col"><a href="${u(b.path)}">${esc(b.name)}</a></th></tr></thead><tbody>
+<div class="table-scroll" tabindex="0"><table class="matrix"><caption class="sr">${th('{a} and {b} side by side', { a: esc(a.name), b: esc(b.name) })}</caption><thead><tr><th scope="col"></th><th scope="col"><a href="${u(a.path)}">${esc(a.name)}</a></th><th scope="col"><a href="${u(b.path)}">${esc(b.name)}</a></th></tr></thead><tbody>
 ${row('Interface', esc(INTERFACES[a.interface].long), esc(INTERFACES[b.interface].long))}
 ${row('Language', esc(a.language), esc(b.language))}
 ${row('License', licenseHtml(a), licenseHtml(b))}
@@ -429,8 +470,8 @@ ${FEATURES.map(([k, n]) => row(n, cell(a.features[k]), cell(b.features[k]))).joi
 ${faqBlock(qa)}
 <p class="small">See also: <a href="${u(`/alternatives/${a.slug}/`)}">${esc(a.name)} alternatives</a>, <a href="${u(`/alternatives/${b.slug}/`)}">${esc(b.name)} alternatives</a>.</p>`;
   return layout({
-    title: `${a.name} vs ${b.name}: terminal email clients compared`,
-    description: `${a.name} vs ${b.name}: ${diffs[0] ? diffs[0].replace(/<[^>]+>/g, '').replace(/&amp;/g, '&') : 'interface, protocols, features and the systems each runs on'} Side by side, with install commands.`,
+    title: fit(60, `${a.name} vs ${b.name}: terminal email clients compared`, `${a.name} vs ${b.name}: email clients compared`, `${a.name} vs ${b.name}`),
+    description: compareDescription(a, b, diffs),
     body,
     pathname: c.path,
     jsonld: [{ '@type': 'WebPage', name: `${a.name} vs ${b.name}`, url: abs(c.path), about: [softwareLd(a), softwareLd(b)].map((s) => ({ '@type': 'SoftwareApplication', name: s.name, url: s.url })) }, breadcrumbs([['Home', '/'], ['Compare', '/compare/'], [`${a.name} vs ${b.name}`, c.path]]), faqLd(qa)],
@@ -439,11 +480,15 @@ ${faqBlock(qa)}
   });
 }
 
+// Pairs named on the comparison index as examples.
+const EXAMPLE_PAIRS = [['mutt', 'neomutt'], ['aerc', 'neomutt'], ['alpine', 'mutt'], ['aerc', 'meli'], ['mu4e', 'notmuch-emacs']];
+
 function compareIndex() {
   const body = `<h1>Compare terminal email clients</h1>
-<p class="lede">${comparisons.length} side-by-side comparisons of ${clients.length} clients: interface, protocols, features and the systems each runs on.</p>
-${clients.map((c) => `<h2 id="${esc(c.slug)}">${esc(c.name)}</h2><ul class="link-list">${clients.filter((o) => o !== c).map((o) => `<li><a href="${u(comparisonFor(c, o).path)}">${esc(c.name)} vs ${esc(o.name)}</a></li>`).join('')}</ul>`).join('\n')}`;
-  return layout({ title: 'Compare terminal email clients', description: `${comparisons.length} side-by-side comparisons of terminal email clients, such as NeoMutt vs aerc and Mutt vs Alpine.`, body, pathname: '/compare/', jsonld: [breadcrumbs([['Home', '/'], ['Compare', '/compare/']])], lastmod: newest(clients), og: { kind: 'page', title: 'Compare terminal email clients', text: `${comparisons.length} side-by-side comparisons` } });
+<p class="lede">${comparisons.length} side-by-side comparisons of ${clients.length} terminal email clients: interface, protocols, features and the systems each runs on.</p>
+<p class="measure">Each pair is listed once, under the client whose name comes first in the alphabet. Every client page also links to its closest comparisons, and each <a href="${u('/alternatives/')}">alternatives page</a> ranks the other clients by how similar they are. For example: ${joinList(EXAMPLE_PAIRS.map(([x, y]) => comparisonFor(bySlug.get(x), bySlug.get(y))).filter(Boolean).map((c) => `<a href="${u(c.path)}">${esc(c.a.name)} vs ${esc(c.b.name)}</a>`))}.</p>
+${[...clients].sort((x, y) => x.slug.localeCompare(y.slug)).map((c) => [c, comparisons.filter((p) => p.a === c)]).filter(([, list]) => list.length).map(([c, list]) => `<h2 id="${esc(c.slug)}">${esc(c.name)}</h2><ul class="link-list">${list.map((p) => `<li><a href="${u(p.path)}">${esc(p.a.name)} vs ${esc(p.b.name)}</a></li>`).join('')}</ul>`).join('\n')}`;
+  return layout({ title: 'Compare terminal email clients side by side', description: `${comparisons.length} side-by-side comparisons of terminal email clients, such as Mutt vs NeoMutt and aerc vs NeoMutt: protocols, features and systems.`, body, pathname: '/compare/', jsonld: [breadcrumbs([['Home', '/'], ['Compare', '/compare/']])], lastmod: newest(clients), og: { kind: 'page', title: 'Compare terminal email clients', text: `${comparisons.length} side-by-side comparisons` } });
 }
 
 // ---------- alternatives ----------
@@ -469,13 +514,13 @@ function alternativesPage(a) {
 <h1>${esc(entry.name)} alternatives</h1>
 <p class="lede">Terminal email clients to use instead of <a href="${u(entry.path)}">${esc(entry.name)}</a>, most similar first: same kind of interface, then shared protocols and systems.</p>
 ${osKey()}
-<div class="table-scroll" tabindex="0"><table class="listing stack"><thead><tr><th scope="col">${th('Systems')}</th><th scope="col">${th('Client')}</th><th scope="col">${th('Compare')}</th></tr></thead><tbody>
+<div class="table-scroll" tabindex="0"><table class="listing stack"><caption class="sr">${th('{name} alternatives, most similar first', { name: esc(entry.name) })}</caption><thead><tr><th scope="col">${th('Systems')}</th><th scope="col">${th('Client')}</th><th scope="col">${th('Compare')}</th></tr></thead><tbody>
 ${top.map((c) => `<tr><td class="os-col">${osMatrix(c)}</td><td class="name"><a href="${u(c.path)}">${esc(c.name)}</a>${tags(c)}<span class="sum">${esc(why(entry, c))} ${esc(c.summary)}</span></td><td class="meta"><a href="${u(comparisonFor(entry, c).path)}">vs ${esc(entry.name)}</a></td></tr>`).join('\n')}
 </tbody></table></div>
 ${list.length > top.length ? `<p class="small">Also: ${linkNames(list.slice(top.length))}.</p>` : ''}`;
   return layout({
-    title: `${entry.name} alternatives: ${top.length} terminal email clients`,
-    description: `Alternatives to ${entry.name}: ${names(top.slice(0, 5)).join(', ')} and more terminal email clients, with why each one is similar.`,
+    title: fit(60, `${entry.name} alternatives: ${top.length} terminal email clients`, `${entry.name} alternatives: ${top.length} terminal clients`, `${entry.name} alternatives`),
+    description: fit(155, `Alternatives to ${entry.name}: ${names(top.slice(0, 5)).join(', ')} and more terminal email clients, with why each one is similar and a side-by-side comparison.`, `Alternatives to ${entry.name}: ${names(top.slice(0, 5)).join(', ')} and more terminal email clients, with why each one is similar.`, `Alternatives to ${entry.name}: ${names(top.slice(0, 3)).join(', ')} and more terminal email clients, with why each one is similar.`),
     body,
     pathname: a.path,
     jsonld: [{ '@type': 'CollectionPage', name: `${entry.name} alternatives`, url: abs(a.path), mainEntity: itemList(`${entry.name} alternatives`, top) }, breadcrumbs([['Home', '/'], ['Alternatives', '/alternatives/'], [entry.name, a.path]])],
@@ -488,7 +533,7 @@ function alternativesIndex() {
   const body = `<h1>Alternatives to terminal email clients</h1>
 <p class="lede">For each client, the others ranked by how similar they are.</p>
 <ul class="link-list">${alternatives.map((a) => `<li><a href="${u(a.path)}">${esc(a.entry.name)} alternatives</a></li>`).join('')}</ul>`;
-  return layout({ title: 'Terminal email client alternatives', description: 'Alternatives to Mutt, NeoMutt, Alpine, aerc and other terminal email clients, ranked by similarity.', body, pathname: '/alternatives/', jsonld: [breadcrumbs([['Home', '/'], ['Alternatives', '/alternatives/']])], lastmod: newest(clients), og: { kind: 'page', title: 'Terminal email client alternatives', text: 'Ranked by how similar they are' } });
+  return layout({ title: 'Terminal email client alternatives', description: `Alternatives to Mutt, NeoMutt, Alpine, aerc and ${clients.length - 4} other terminal email clients, ranked by interface, shared protocols and systems.`, body, pathname: '/alternatives/', jsonld: [breadcrumbs([['Home', '/'], ['Alternatives', '/alternatives/']])], lastmod: newest(clients), og: { kind: 'page', title: 'Terminal email client alternatives', text: 'Ranked by how similar they are' } });
 }
 
 // ---------- feature lists ----------
@@ -497,16 +542,18 @@ function featurePage(f) {
   const body = `<nav aria-label="${esc(t('Breadcrumb'))}"><ol class="crumbs"><li><a href="${u('/')}">Home</a></li><li><a href="${u('/features/')}">Features</a></li><li aria-current="page">${esc(f.h1)}</li></ol></nav>
 <h1>${esc(f.h1)}</h1>
 <p class="lede">${esc(f.intro)} ${plural(f.list.length, 'client', 'clients')} on this site qualify.</p>
+${f.about ? `<p class="measure">${esc(f.about)} ${interfaceCounts(f.list).replace(/^Of the (\d+) clients? on this site,/, 'Of these $1,')} Terms are explained in <a href="${u('/glossary/')}">the glossary</a>.</p>` : ''}
 ${osKey()}
 ${listing(f.list, { caption: `${f.list.length} clients` })}
 <p class="small">Other lists: ${joinList(features.filter((x) => x !== f).map((x) => `<a href="${u(x.path)}">${esc(x.title.replace(/^Terminal email clients with /, '').replace(/ email clients$/, ''))}</a>`))}.</p>`;
-  return layout({ title: f.title, description: `${f.intro} ${names(f.list.slice(0, 6)).join(', ')}${f.list.length > 6 ? ' and more' : ''}.`, body, pathname: f.path, jsonld: [{ '@type': 'CollectionPage', name: f.h1, url: abs(f.path), mainEntity: itemList(f.h1, f.list) }, breadcrumbs([['Home', '/'], ['Features', '/features/'], [f.h1, f.path]])], lastmod: newest(f.list), og: { kind: 'list', title: f.h1, list: f.list } });
+  const some = f.list.length > 6 ? `${names(f.list.slice(0, 6)).join(', ')} and more` : joinList(names(f.list));
+  return layout({ title: f.title, description: fit(155, `${f.intro} ${some}, with install commands.`, `${f.intro} ${some}.`, `${f.intro} ${names(f.list.slice(0, 4)).join(', ')} and more.`), body, pathname: f.path, jsonld: [{ '@type': 'CollectionPage', name: f.h1, url: abs(f.path), mainEntity: itemList(f.h1, f.list) }, breadcrumbs([['Home', '/'], ['Features', '/features/'], [f.h1, f.path]])], lastmod: newest(f.list), og: { kind: 'list', title: f.h1, list: f.list } });
 }
 
 function featuresIndex() {
   const body = `<h1>Terminal email clients by feature</h1>
 <ul class="link-list">${features.map((f) => `<li><a href="${u(f.path)}">${esc(f.h1)}</a> <span class="muted">(${f.list.length})</span></li>`).join('')}</ul>`;
-  return layout({ title: 'Terminal email clients by feature', description: 'Terminal email clients with PGP, JMAP, Maildir, notmuch, OAuth2, mouse support, Vim keys and more.', body, pathname: '/features/', jsonld: [breadcrumbs([['Home', '/'], ['Features', '/features/']])], lastmod: newest(clients), og: { kind: 'page', title: 'Terminal email clients by feature', text: 'PGP, JMAP, Maildir, notmuch, OAuth2 and more' } });
+  return layout({ title: 'Terminal email clients by feature', description: `${features.length} lists of terminal email clients by feature: OpenPGP, IMAP, JMAP, Maildir, notmuch, OAuth2, mouse support, Vim keys and more.`, body, pathname: '/features/', jsonld: [breadcrumbs([['Home', '/'], ['Features', '/features/']])], lastmod: newest(clients), og: { kind: 'page', title: 'Terminal email clients by feature', text: 'PGP, JMAP, Maildir, notmuch, OAuth2 and more' } });
 }
 
 // ---------- setup ----------
@@ -520,14 +567,14 @@ ${settingsTable()}
 <h2>Configs</h2>
 <ul class="link-list">${list.map((e) => `<li><a href="#${esc(e.slug)}">${esc(e.name)}</a></li>`).join('')}</ul>
 ${list.map((e) => `<section aria-labelledby="${esc(e.slug)}"><h3 id="${esc(e.slug)}"><a href="${u(e.path)}">${esc(e.name)}</a></h3>${codeBlock(e.forward_email, { title: e.forward_email_file || 'Configuration' })}</section>`).join('\n')}`;
-  return layout({ title: 'Forward Email IMAP and SMTP settings for terminal clients', description: 'Forward Email IMAP, POP3 and SMTP settings, with ready-to-use configs for NeoMutt, Mutt, aerc, meli, Alpine, Himalaya, isync, msmtp and more.', body, pathname: '/setup/', type: 'article', jsonld: [{ '@type': 'HowTo', name: 'Set up a terminal email client with Forward Email', step: [{ '@type': 'HowToStep', text: 'Generate a password for your alias in your Forward Email account.' }, { '@type': 'HowToStep', text: 'Set the IMAP server to imap.forwardemail.net, port 993, SSL/TLS.' }, { '@type': 'HowToStep', text: 'Set the SMTP server to smtp.forwardemail.net, port 465, SSL/TLS.' }, { '@type': 'HowToStep', text: 'Use your full alias address as the username.' }] }, breadcrumbs([['Home', '/'], ['Setup', '/setup/']])], lastmod: newest(entries), og: { kind: 'page', title: 'Forward Email settings for terminal clients', text: 'imap.forwardemail.net:993 and smtp.forwardemail.net:465' } });
+  return layout({ title: 'Forward Email IMAP and SMTP settings for terminal clients', description: 'Forward Email IMAP, POP3 and SMTP settings, with configs for NeoMutt, Mutt, aerc, meli, Alpine, Himalaya, isync, msmtp and more.', body, pathname: '/setup/', type: 'article', jsonld: [{ '@type': 'HowTo', name: 'Set up a terminal email client with Forward Email', step: [{ '@type': 'HowToStep', text: 'Generate a password for your alias in your Forward Email account.' }, { '@type': 'HowToStep', text: 'Set the IMAP server to imap.forwardemail.net, port 993, SSL/TLS.' }, { '@type': 'HowToStep', text: 'Set the SMTP server to smtp.forwardemail.net, port 465, SSL/TLS.' }, { '@type': 'HowToStep', text: 'Use your full alias address as the username.' }] }, breadcrumbs([['Home', '/'], ['Setup', '/setup/']])], lastmod: newest(entries), og: { kind: 'page', title: 'Forward Email settings for terminal clients', text: 'imap.forwardemail.net:993 and smtp.forwardemail.net:465' } });
 }
 
 // ---------- documents, search, errors ----------
 
 function docPage(d) {
   const body = `<article class="prose"><h1>${esc(d.title)}</h1>${md(d.body.replace(/^# .*\n+/, ''))}</article>`;
-  return layout({ title: d.title, description: d.description, body, pathname: d.path, type: 'article', jsonld: [{ '@type': 'WebPage', name: d.title, url: abs(d.path), description: d.description }, breadcrumbs([['Home', '/'], [d.title, d.path]])], lastmod: lastmod(d.file), og: { kind: 'page', title: d.title, text: d.description } });
+  return layout({ title: d.title, description: d.description, body, pathname: d.path, type: 'article', jsonld: [{ '@type': d.slug === 'about' ? 'AboutPage' : 'WebPage', name: d.title, url: abs(d.path), description: d.description, isPartOf: { '@id': `${abs('/')}#website` }, publisher: { '@id': `${abs('/')}#organization` } }, breadcrumbs([['Home', '/'], [d.title, d.path]])], lastmod: lastmod(d.file), og: { kind: 'page', title: d.title, text: d.description } });
 }
 
 function searchPage() {
@@ -535,7 +582,7 @@ function searchPage() {
 <form role="search" action="${u('/search/')}" method="get" class="filter-row"><div class="filter-field"><label class="sr" for="q">${th('Search clients and tools')}</label><input id="q" name="q" type="search" placeholder="${esc(t('search: neomutt, windows, jmap…'))}" autocomplete="off" spellcheck="false" data-search data-autofill></div><button class="btn" type="submit">${th('Search')}</button></form>
 <ul class="results" data-results hidden aria-live="polite"></ul>
 <noscript><p>Search needs JavaScript. Browse <a href="${u('/clients/')}">all clients</a> or <a href="${u('/systems/')}">clients by system</a> instead.</p></noscript>`;
-  return layout({ title: 'Search', description: 'Search terminal email clients, mail tools, systems and comparisons.', body, pathname: '/search/', noindex: true, markdown: false });
+  return layout({ title: 'Search clients and tools', description: 'Search terminal email clients, mail tools, systems and comparisons.', body, pathname: '/search/', noindex: true, markdown: false });
 }
 
 function offlinePage() {
@@ -548,4 +595,4 @@ function notFound() {
   return layout({ title: 'Page not found', description: 'This page does not exist.', body, pathname: '/404.html', noindex: true, markdown: false, shareable: false });
 }
 
-module.exports = { homePage, entryPage, clientsIndex, toolsIndex, systemsIndex, systemPage, comparePage, compareIndex, alternativesPage, alternativesIndex, featurePage, featuresIndex, setupPage, docPage, searchPage, offlinePage, notFound, differences, why, homeFaq, entryFaq, systemFaq, OS_TEXT };
+module.exports = { faqBlock, interfaceCounts, maildirOnly, linkNames, nativeOn, winRest, settingsTable, homePage, entryPage, clientsIndex, toolsIndex, systemsIndex, systemPage, comparePage, compareIndex, alternativesPage, alternativesIndex, featurePage, featuresIndex, setupPage, docPage, searchPage, offlinePage, notFound, differences, why, homeFaq, entryFaq, systemFaq, OS_TEXT };

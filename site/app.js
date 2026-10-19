@@ -303,8 +303,11 @@
 
     // Email and Messages links need an app registered for mailto: or sms:. Without one the
     // browser silently does nothing, so if the page keeps focus, copy the text and link instead.
-    Array.prototype.forEach.call(sharePop.querySelectorAll('a.share-to[href^="mailto:"], a.share-to[href^="sms:"]'), function (a) {
+    // They are buttons, hidden until this script can open them.
+    Array.prototype.forEach.call(sharePop.querySelectorAll('[data-share-href]'), function (a) {
+      a.parentNode.hidden = false;
       a.addEventListener('click', function () {
+        window.location.href = a.getAttribute('data-share-href');
         var left = false;
         var away = function () { left = true; };
         window.addEventListener('blur', away, { once: true });

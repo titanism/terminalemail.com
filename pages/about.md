@@ -1,6 +1,6 @@
 ---
 title: About Terminal Email
-description: What Terminal Email lists, how the facts are checked, and how Forward Email, which makes the site, is featured.
+description: What Terminal Email lists, how each fact is checked against its source, and how Forward Email, which makes the site, is featured.
 ---
 
 # About Terminal Email
@@ -17,7 +17,7 @@ A program is listed when:
 
 Programs with no commits or releases in about a year stay listed when they still work, with a **Not maintained** label. Programs that no longer build or run are removed.
 
-## How facts are checked
+## Editorial policy: how facts are checked
 
 Every fact comes from the project itself: its website, repository, license file, manual or release notes. Install commands are checked against the package repositories of Debian, Fedora, Arch, Homebrew, FreeBSD, OpenBSD, MSYS2, Scoop, winget and Termux. Each page lists the sources it was checked against.
 
@@ -29,8 +29,14 @@ Terminal Email is made by [Forward Email](https://forwardemail.net), an email pr
 
 Every other client works with any email provider. The setup examples use Forward Email's server names because the site is made by Forward Email; change the server names and they work with any provider that offers IMAP and SMTP.
 
-There are no ads, affiliate links, trackers or cookies.
+Forward Email is open source ([forwardemail/forwardemail.net](https://github.com/forwardemail/forwardemail.net)), and its founder was one of the first employees at DuckDuckGo.
 
-## Corrections
+There are no ads, affiliate links, trackers or cookies. See [Privacy](/privacy/) and the [terms of use](/terms/).
 
-If a fact is wrong or out of date, [report a mistake](https://github.com/forwardemail/terminalemail.com/issues/new?template=correction.yml) with a link to a source, or edit the file and open a pull request. See [how to contribute](CONTRIBUTING.md).
+## Picks and guides
+
+The [best clients by need](/best/) page picks one client for each common need, with the facts behind each pick. The [questions and answers](/faq/) and the [glossary](/glossary/) explain terms such as IMAP, Maildir and JMAP.
+
+## Contact and corrections
+
+All contact goes through the [GitHub repository](https://github.com/forwardemail/terminalemail.com). If a fact is wrong or out of date, [report a mistake](https://github.com/forwardemail/terminalemail.com/issues/new?template=correction.yml) with a link to a source, or edit the file and open a pull request. See [how to contribute](CONTRIBUTING.md). Report security problems privately as described in the [security policy](SECURITY.md).
